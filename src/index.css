@@ -1,0 +1,68 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-accent: #e040fb;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-[#0b0b12] text-zinc-100 antialiased;
+    background-image: radial-gradient(ellipse at top, rgb(224 64 251 / 0.12), transparent 60%);
+    background-attachment: fixed;
+  }
+  button:disabled {
+    @apply cursor-not-allowed opacity-40;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5 backdrop-blur sm:p-6;
+  }
+  .step-title {
+    @apply mb-4 text-xl font-bold;
+  }
+  .choice {
+    @apply cursor-pointer rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 transition hover:border-zinc-600;
+  }
+  .chip {
+    @apply cursor-pointer rounded-full border border-zinc-700 px-4 py-1.5 text-sm transition hover:border-zinc-500;
+  }
+  .choice-on {
+    @apply border-accent bg-accent/10 ring-1 ring-accent;
+  }
+  .field {
+    @apply grid gap-1.5 text-sm;
+  }
+  .field > span {
+    @apply text-zinc-400;
+  }
+  .field input,
+  .field select,
+  .field textarea {
+    @apply w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-base text-zinc-100 outline-none focus:border-accent;
+  }
+  .btn {
+    @apply cursor-pointer rounded-full bg-accent px-6 py-2.5 font-semibold text-black transition hover:brightness-110;
+  }
+  .btn-ghost {
+    @apply cursor-pointer rounded-full border border-zinc-700 px-6 py-2.5 font-semibold transition hover:border-zinc-500;
+  }
+}
+
+/* Kalender (react-day-picker) i appens farver */
+.rdp-root.rdp-root {
+  --rdp-accent-color: var(--color-accent);
+  --rdp-accent-background-color: rgb(224 64 251 / 0.15);
+  --rdp-today-color: var(--color-accent);
+}
+.rdp-selected .rdp-day_button {
+  @apply bg-accent font-bold text-black;
+}
+.rdp-disabled {
+  @apply line-through opacity-30;
+}
