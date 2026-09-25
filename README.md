@@ -6,33 +6,30 @@ Booking-app til DJ Lindstrom. Kunder sender en forespørgsel, og Viktor håndter
 - **Admin:** `https://lindstroms.github.io/DJLindstrom/#/admin`
 
 Teknik: React + Vite + Tailwind (frontend på GitHub Pages) og Supabase (database og login).
-Uden Supabase-nøgler kører appen i **demo-tilstand** med eksempeldata.
+Med `VITE_DEMO=true` kører appen i **demo-tilstand** med eksempeldata.
 
-## Opsætning af Supabase (én gang)
+## Supabase
 
-1. Opret et projekt i Supabase (region: *West EU / Frankfurt* eller *Stockholm*).
-2. **SQL Editor → New query**: indsæt hele `supabase/migrations/0001_init.sql` og tryk *Run*.
-3. **Authentication → Users → Add user**: opret `viktor@fam-lindstrom.dk` med en adgangskode
-   (sæt flueben i *Auto Confirm User*).
-4. **Authentication → Sign In / Providers**: slå *Allow new users to sign up* **fra**,
-   så kun Viktor kan logge ind.
-5. **Project Settings → API**: kopiér *Project URL* og *anon public* key.
+Projekt: **DJLindstrom** (`vubxctebuwiftamiskxs`, EU). Databasen er sat op med
+`supabase/migrations/0001_init.sql` og `0002_harden_functions.sql`.
 
-## Opsætning af GitHub Pages (én gang)
+Mangler at blive gjort i Supabase-dashboardet (én gang):
+
+1. **Authentication → Users → Add user → Create new user**: `viktor@fam-lindstrom.dk` + adgangskode,
+   sæt flueben i *Auto Confirm User*.
+2. **Authentication → Sign In / Providers**: slå *Allow new users to sign up* **fra**.
+
+Nye admins tilføjes ved at indsætte deres e-mail i tabellen `admins`.
+
+## GitHub Pages (én gang)
 
 1. GitHub → repo → **Settings → Pages → Source: GitHub Actions**.
-2. **Settings → Secrets and variables → Actions → Variables**: opret
-   - `VITE_SUPABASE_URL` = Project URL
-   - `VITE_SUPABASE_ANON_KEY` = anon public key
-
-   (anon-nøglen er beregnet til at være offentlig – databasen er beskyttet af Row Level Security.)
-3. Hver push til `main` bygger og udgiver siden automatisk.
+2. Hver push til `main` bygger og udgiver siden automatisk.
 
 ## Lokal udvikling
 
 ```bash
 npm install
-cp .env.example .env   # udfyld nøglerne, eller lad være for demo-tilstand
 npm run dev
 ```
 
