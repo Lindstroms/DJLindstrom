@@ -74,6 +74,8 @@ Deno.serve(async (req) => {
   const { id, kind } = await req.json().catch(() => ({}))
   if (typeof id !== 'string') return new Response('Mangler id', { status: 400 })
   if (kind === 'confirmed') return sendConfirmed(id)
+  if (kind === 'review_request') return sendReviewRequest(id)
+  if (kind === 'review_received') return sendReviewReceived(id)
 
   // Markér som sendt atomisk: kun nye, ikke-notificerede forespørgsler fra de sidste 15 minutter.
   // Det gør funktionen sikker at kalde flere gange og ubrugelig til spam.
@@ -180,6 +182,88 @@ async function sendConfirmed(id: string) {
   } catch (e) {
     // Frigiv så Viktor kan prøve igen ved at sætte status på ny
     await db.from('bookings').update({ confirmed_notified_at: null }).eq('id', id)
+    console.error(String(e))
+    return new Response(`Fejl ved afsendelse:\n${e}`, { status: 502 })
+  }
+  return new Response('OK', { status: 200 })
+}
+
+const stars = (n: number) => '★'.repeat(n) + '☆'.repeat(5 - n)
+
+// Dagen efter festen: bed kunden om en anmeldelse (én gang)
+async function sendReviewRequest(id: string) {
+  const { data: b, error } = await db
+    .from('bookings')
+    .update({ review_requested_at: new Date().toISOString() })
+    .eq('id', id)
+    .in('status', ['bekraeftet', 'afholdt'])
+    .lt('event_date', new Date().toISOString().slice(0, 10))
+    .is('review_requested_at', null)
+    .select('*, event_types(name)')
+    .maybeSingle()
+
+  if (error) return new Response(error.message, { status: 500 })
+  if (!b) return new Response('Intet at sende', { status: 200 })
+
+  const url = `${SITE_URL}#/anmeld/${b.wishlist_token}`
+  const firstName = String(b.customer_name).split(' ')[0]
+  const starLinks = [1, 2, 3, 4, 5]
+    .map(
+      (n) =>
+        `<a href="${url}?stars=${n}" style="font-size:34px;line-height:1;color:#e040fb;text-decoration:none;padding:0 3px" title="${n} stjerner">★</a>`,
+    )
+    .join('')
+
+  const html = layout(
+    'Tak for festen! 🎉',
+    `<p>Hej ${esc(firstName)}</p>
+     <p>Tusind tak fordi jeg måtte spille til jeres ${esc(String(b.event_types?.name ?? 'fest').toLowerCase())}. Jeg håber, I fik en fantastisk aften!</p>
+     <p>Vil du bruge et halvt minut på at fortælle, hvordan det gik? Det betyder rigtig meget for mig – og hjælper andre med at vælge DJ.</p>
+     <p style="margin:24px 0 8px;font-weight:600">Hvor mange stjerner giver du?</p>
+     <p style="margin:0">${starLinks}</p>
+     <p style="margin-top:24px"><a href="${url}" style="background:#e040fb;color:#000;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:700">Skriv en anmeldelse</a></p>
+     <p>Mvh<br>DJ Lindstrom</p>`,
+  )
+
+  try {
+    await send(b.email, 'Tak for festen – hvordan var det?', html, ADMIN_EMAIL)
+  } catch (e) {
+    await db.from('bookings').update({ review_requested_at: null }).eq('id', id)
+    console.error(String(e))
+    return new Response(`Fejl ved afsendelse:\n${e}`, { status: 502 })
+  }
+  return new Response('OK', { status: 200 })
+}
+
+// Besked til Viktor om ny/ændret anmeldelse
+async function sendReviewReceived(reviewId: string) {
+  const { data: r, error } = await db
+    .from('reviews')
+    .select('*, bookings(customer_name, email)')
+    .eq('id', reviewId)
+    .gte('updated_at', new Date(Date.now() - 15 * 60 * 1000).toISOString())
+    .maybeSingle()
+  if (error) return new Response(error.message, { status: 500 })
+  if (!r) return new Response('Intet at sende', { status: 200 })
+
+  const html = layout(
+    `Ny anmeldelse ${stars(r.rating)}`,
+    `${table([
+      ['Stjerner', `${stars(r.rating)} (${r.rating}/5)`],
+      ['Fra', `${r.display_name}${r.bookings ? ` (${r.bookings.customer_name})` : ''}`],
+      ['Event', r.event_label],
+      ['Anmeldelse', r.text],
+      ['Må vises', r.consent_publish ? 'Ja' : 'Nej – kun til dig'],
+    ])}
+     ${
+       r.consent_publish
+         ? `<p style="margin-top:24px"><a href="${ADMIN_URL}" style="background:#e040fb;color:#000;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:700">Godkend i admin</a></p>`
+         : ''
+     }`,
+  )
+  try {
+    await send(ADMIN_EMAIL, `Ny anmeldelse ${stars(r.rating)} – ${r.display_name}`, html, r.bookings?.email)
+  } catch (e) {
     console.error(String(e))
     return new Response(`Fejl ved afsendelse:\n${e}`, { status: 502 })
   }

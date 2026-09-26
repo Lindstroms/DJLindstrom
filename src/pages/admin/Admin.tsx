@@ -9,6 +9,7 @@ import { downloadIcs } from '../../lib/ics'
 import { STATUS_LABELS, type Booking, type BookingStatus } from '../../lib/types'
 import Login from './Login'
 import Setup from './Setup'
+import Reviews from './Reviews'
 import { ENERGY_LABELS, WISH_LABELS, spotifySearchUrl, type WishKind } from '../../lib/music'
 
 const STATUS_COLORS: Record<BookingStatus, string> = {
@@ -42,26 +43,31 @@ export default function Admin() {
 }
 
 function AdminShell() {
-  const [tab, setTab] = useState<'bookings' | 'setup'>('bookings')
+  const [tab, setTab] = useState<'bookings' | 'reviews' | 'setup'>('bookings')
   return (
     <div>
       <div className="mb-6 flex items-center gap-1 rounded-full border border-zinc-800 bg-zinc-900/70 p-1">
         {(
           [
-            ['bookings', 'Forespørgsler'],
+            ['bookings', 'Bookinger'],
+            ['reviews', 'Anmeldelser'],
             ['setup', 'Opsætning'],
           ] as const
         ).map(([k, label]) => (
           <button
             key={k}
             onClick={() => setTab(k)}
-            className={`flex-1 cursor-pointer rounded-full px-4 py-2 text-sm font-semibold ${tab === k ? 'bg-accent text-black' : 'text-zinc-300'}`}
+            className={`flex-1 cursor-pointer rounded-full px-2 py-2 text-xs font-semibold sm:px-4 sm:text-sm ${tab === k ? 'bg-accent text-black' : 'text-zinc-300'}`}
           >
             {label}
           </button>
         ))}
         {supabase && (
-          <button className="cursor-pointer px-3 text-sm text-zinc-400 hover:text-zinc-100" onClick={() => supabase!.auth.signOut()}>
+          <button
+            className="cursor-pointer px-2 text-xs text-zinc-400 hover:text-zinc-100 sm:px-3 sm:text-sm"
+            onClick={() => supabase!.auth.signOut()}
+            title="Log ud"
+          >
             Log ud
           </button>
         )}
@@ -69,7 +75,9 @@ function AdminShell() {
       {tab === 'bookings' ? (
         <Dashboard />
       ) : isDemo ? (
-        <p className="text-zinc-400">Opsætning kræver forbindelse til databasen.</p>
+        <p className="text-zinc-400">Kræver forbindelse til databasen.</p>
+      ) : tab === 'reviews' ? (
+        <Reviews />
       ) : (
         <Setup />
       )}

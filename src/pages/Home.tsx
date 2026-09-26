@@ -4,6 +4,8 @@ import { fetchCatalog } from '../lib/api'
 import type { Catalog } from '../lib/types'
 import { content } from '../content'
 import Booking from './Booking'
+import Stars from '../components/Stars'
+import { getPublicReviews, type PublicReviews } from '../lib/reviews'
 
 // Tilføjer .is-visible når elementer med .reveal ruller i syne
 function useReveal(deps: unknown[]) {
@@ -59,12 +61,14 @@ export default function Home() {
   const [catalog, setCatalog] = useState<Catalog | null>(null)
   const [loadError, setLoadError] = useState('')
   const [preselect, setPreselect] = useState<{ id: string; nonce: number }>()
+  const [reviews, setReviews] = useState<PublicReviews | null>(null)
   const bookRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
     fetchCatalog().then(setCatalog).catch((e: Error) => setLoadError(e.message))
+    getPublicReviews().then(setReviews).catch(() => setReviews(null))
   }, [])
-  useReveal([catalog])
+  useReveal([catalog, reviews])
 
   const scrollToBook = () => bookRef.current?.scrollIntoView({ behavior: 'smooth' })
   const pick = (id: string) => {
@@ -253,6 +257,34 @@ export default function Home() {
                 loading="lazy"
                 className="reveal mb-3 w-full rounded-2xl border border-white/10"
               />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Anmeldelser – vises når der er godkendte anmeldelser */}
+      {reviews && reviews.count > 0 && (
+        <section className="mx-auto max-w-6xl px-4 py-16">
+          <div className="reveal mb-10 text-center">
+            <h2 className="section-title">Det siger kunderne</h2>
+            <p className="mt-4 flex items-center justify-center gap-3 text-zinc-300">
+              <Stars value={Math.round(reviews.average ?? 0)} size="text-2xl" />
+              <span>
+                <b className="text-white">{Number(reviews.average).toLocaleString('da-DK')}</b> ud af 5 · {reviews.count}{' '}
+                {reviews.count === 1 ? 'anmeldelse' : 'anmeldelser'}
+              </span>
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {reviews.reviews.slice(0, 6).map((r, i) => (
+              <figure key={r.id} className="reveal card flex flex-col" style={{ transitionDelay: `${(i % 3) * 80}ms` }}>
+                <Stars value={r.rating} />
+                {r.text && <blockquote className="mt-3 flex-1 text-zinc-200">“{r.text}”</blockquote>}
+                <figcaption className="mt-4 text-sm">
+                  <span className="font-semibold">{r.display_name}</span>
+                  {r.event_label && <span className="text-zinc-500"> · {r.event_label}</span>}
+                </figcaption>
+              </figure>
             ))}
           </div>
         </section>
