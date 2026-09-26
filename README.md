@@ -55,4 +55,5 @@ npm run dev
 - [x] E-mails (kvittering til kunde + besked til Viktor) – kræver Resend-opsætning
 - [x] Admin → Opsætning: opret/rediger/skjul event-typer, temaer, lydpakker, blokerede datoer og "vis priser"
 - [x] Musikønsker: kunden får link ved bekræftelse, søger sange (iTunes/Deezer), vælger genrer/energi; vises i admin
+- [x] Live-ønsker: QR-kode til gæster, ønsk/stem på sange, DJ-kø i admin (#/admin/live/:id)
 - [x] Abonnent-kalender (ICS-feed) til iPhone – Admin → Opsætning → Kalender

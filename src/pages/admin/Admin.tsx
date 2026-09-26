@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import type { Session } from '@supabase/supabase-js'
 import { format, parseISO, startOfToday } from 'date-fns'
 import { da } from 'date-fns/locale'
@@ -233,6 +234,11 @@ function Dashboard() {
                     <button className="btn" onClick={() => downloadIcs(b)}>
                       📅 Tilføj til kalender
                     </button>
+                    {b.status === 'bekraeftet' && (
+                      <Link to={`/admin/live/${b.id}`} className="btn-ghost">
+                        🎧 Live-ønsker (QR)
+                      </Link>
+                    )}
                   </div>
                 </div>
               )}

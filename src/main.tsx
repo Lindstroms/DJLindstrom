@@ -6,6 +6,8 @@ import Home from './pages/Home'
 import Thanks from './pages/Thanks'
 import Admin from './pages/admin/Admin'
 import MusicWishes from './pages/MusicWishes'
+import LiveGuest from './pages/LiveGuest'
+import LiveDj from './pages/admin/LiveDj'
 
 // Enkel ramme til takkeside og admin
 function Page({ children }: { children: ReactNode }) {
@@ -30,6 +32,8 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/tak" element={<Page><Thanks /></Page>} />
         <Route path="/admin" element={<Page><Admin /></Page>} />
         <Route path="/musik/:token" element={<Page><MusicWishes /></Page>} />
+        <Route path="/live/:token" element={<Page><LiveGuest /></Page>} />
+        <Route path="/admin/live/:id" element={<Page><LiveDj /></Page>} />
       </Routes>
     </HashRouter>
   </StrictMode>,
