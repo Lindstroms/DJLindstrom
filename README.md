@@ -21,6 +21,19 @@ Mangler at blive gjort i Supabase-dashboardet (én gang):
 
 Nye admins tilføjes ved at indsætte deres e-mail i tabellen `admins`.
 
+## E-mails (Resend)
+
+Ved hver ny forespørgsel kalder en database-trigger edge-funktionen `booking-email`
+(`supabase/functions/booking-email`), som sender kvittering til kunden og besked til Viktor via Resend.
+
+Opsætning (én gang):
+
+1. Opret konto på resend.com → **Domains → Add domain** → `fam-lindstrom.dk` (region: Ireland).
+2. Læg de viste DNS-records ind hos one.com (**DNS-indstillinger**) og tryk *Verify* i Resend.
+3. Resend → **API Keys → Create API key** (Sending access).
+4. Supabase → **Edge Functions → Secrets**: tilføj `RESEND_API_KEY`.
+   Valgfrit: `EMAIL_FROM` (standard `DJ Lindstrom <booking@fam-lindstrom.dk>`) og `ADMIN_EMAIL`.
+
 ## GitHub Pages (én gang)
 
 1. GitHub → repo → **Settings → Pages → Source: GitHub Actions**.
@@ -39,6 +52,6 @@ npm run dev
 - [x] Kvitteringsside: "Tak for din forespørgsel – vi kontakter dig og sender et tilbud inden for 24 timer."
 - [x] Admin: login, liste over forespørgsler, status, tilbudt pris, noter, "Tilføj til kalender" (.ics)
 - [x] Priser gemt i databasen, men skjult for kunder (`settings.show_prices`)
-- [ ] E-mails (kvittering til kunde + besked til Viktor)
+- [x] E-mails (kvittering til kunde + besked til Viktor) – kræver Resend-opsætning
 - [ ] Admin: opret/rediger event-typer, temaer, lydpakker og blokerede datoer
 - [ ] Abonnent-kalender (ICS-feed) til iPhone
