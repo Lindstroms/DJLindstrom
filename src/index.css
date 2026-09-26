@@ -36,7 +36,7 @@
     @apply border-accent bg-accent/10 ring-1 ring-accent;
   }
   .field {
-    @apply grid gap-1.5 text-sm;
+    @apply grid min-w-0 gap-1.5 text-sm;
   }
   .field > span {
     @apply text-zinc-400;
@@ -48,6 +48,9 @@
   }
   .btn {
     @apply cursor-pointer rounded-full bg-accent px-6 py-2.5 font-semibold text-black transition hover:brightness-110;
+  }
+  .icon-btn {
+    @apply grid size-8 cursor-pointer place-items-center rounded-full border border-zinc-700 text-sm hover:border-zinc-500;
   }
   .btn-ghost {
     @apply cursor-pointer rounded-full border border-zinc-700 px-6 py-2.5 font-semibold transition hover:border-zinc-500;

@@ -53,5 +53,5 @@ npm run dev
 - [x] Admin: login, liste over forespørgsler, status, tilbudt pris, noter, "Tilføj til kalender" (.ics)
 - [x] Priser gemt i databasen, men skjult for kunder (`settings.show_prices`)
 - [x] E-mails (kvittering til kunde + besked til Viktor) – kræver Resend-opsætning
-- [ ] Admin: opret/rediger event-typer, temaer, lydpakker og blokerede datoer
+- [x] Admin → Opsætning: opret/rediger/skjul event-typer, temaer, lydpakker, blokerede datoer og "vis priser"
 - [ ] Abonnent-kalender (ICS-feed) til iPhone

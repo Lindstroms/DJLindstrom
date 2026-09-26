@@ -7,6 +7,7 @@ import { fetchBookings, updateBooking } from '../../lib/api'
 import { downloadIcs } from '../../lib/ics'
 import { STATUS_LABELS, type Booking, type BookingStatus } from '../../lib/types'
 import Login from './Login'
+import Setup from './Setup'
 
 const STATUS_COLORS: Record<BookingStatus, string> = {
   ny: 'bg-accent text-black',
@@ -35,7 +36,43 @@ export default function Admin() {
 
   if (!ready) return <p className="text-zinc-400">Indlæser …</p>
   if (!isDemo && !session) return <Login />
-  return <Dashboard />
+  return <AdminShell />
+}
+
+function AdminShell() {
+  const [tab, setTab] = useState<'bookings' | 'setup'>('bookings')
+  return (
+    <div>
+      <div className="mb-6 flex items-center gap-1 rounded-full border border-zinc-800 bg-zinc-900/70 p-1">
+        {(
+          [
+            ['bookings', 'Forespørgsler'],
+            ['setup', 'Opsætning'],
+          ] as const
+        ).map(([k, label]) => (
+          <button
+            key={k}
+            onClick={() => setTab(k)}
+            className={`flex-1 cursor-pointer rounded-full px-4 py-2 text-sm font-semibold ${tab === k ? 'bg-accent text-black' : 'text-zinc-300'}`}
+          >
+            {label}
+          </button>
+        ))}
+        {supabase && (
+          <button className="cursor-pointer px-3 text-sm text-zinc-400 hover:text-zinc-100" onClick={() => supabase!.auth.signOut()}>
+            Log ud
+          </button>
+        )}
+      </div>
+      {tab === 'bookings' ? (
+        <Dashboard />
+      ) : isDemo ? (
+        <p className="text-zinc-400">Opsætning kræver forbindelse til databasen.</p>
+      ) : (
+        <Setup />
+      )}
+    </div>
+  )
 }
 
 function Dashboard() {
@@ -76,11 +113,6 @@ function Dashboard() {
             {newCount > 0 ? `${newCount} ny${newCount > 1 ? 'e' : ''} venter på svar` : 'Ingen nye forespørgsler'}
           </p>
         </div>
-        {supabase && (
-          <button className="btn-ghost text-sm" onClick={() => supabase!.auth.signOut()}>
-            Log ud
-          </button>
-        )}
       </header>
 
       {isDemo && (
