@@ -62,11 +62,12 @@ async function move<T extends { id: string }>(rows: T[], index: number, dir: -1 
 const numOrNull = (v: string) => (v.trim() === '' ? null : Number(v.replace(',', '.')))
 
 export default function Setup() {
-  const [section, setSection] = useState<'events' | 'packages' | 'dates' | 'general'>('events')
+  const [section, setSection] = useState<'events' | 'packages' | 'dates' | 'calendar' | 'general'>('events')
   const tabs = [
     ['events', 'Event-typer'],
     ['packages', 'Lyd & lys'],
     ['dates', 'Blokerede datoer'],
+    ['calendar', 'Kalender'],
     ['general', 'Generelt'],
   ] as const
 
@@ -82,6 +83,7 @@ export default function Setup() {
       {section === 'events' && <EventTypes />}
       {section === 'packages' && <Packages />}
       {section === 'dates' && <BlockedDates />}
+      {section === 'calendar' && <CalendarFeed />}
       {section === 'general' && <General />}
     </div>
   )
@@ -482,6 +484,78 @@ function General() {
           </span>
         </span>
       </label>
+    </div>
+  )
+}
+
+// ---------------- Kalender-abonnement ----------------
+
+const FEED_URL = 'vubxctebuwiftamiskxs.supabase.co/functions/v1/calendar-feed?token='
+
+function CalendarFeed() {
+  const [token, setToken] = useState<string | null>(null)
+  const [error, setError] = useState('')
+  const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    supabase!
+      .from('settings')
+      .select('calendar_token')
+      .single()
+      .then(({ data, error }) => (error ? setError(error.message) : setToken(data.calendar_token)))
+  }, [])
+
+  const regenerate = async () => {
+    if (!confirm('Lav et nyt link? Det gamle link holder op med at virke, og kalenderen skal tilføjes igen på telefonen.')) return
+    const bytes = crypto.getRandomValues(new Uint8Array(24))
+    const next = [...bytes].map((b) => b.toString(16).padStart(2, '0')).join('')
+    const { error } = await supabase!.from('settings').update({ calendar_token: next }).eq('id', true)
+    if (error) setError(error.message)
+    else setToken(next)
+  }
+
+  const copy = async () => {
+    await navigator.clipboard.writeText('https://' + FEED_URL + token)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  if (!token) return error ? <ErrorBox error={error} /> : <p className="text-zinc-400">Indlæser …</p>
+
+  return (
+    <div className="grid gap-3">
+      <ErrorBox error={error} />
+      <div className="card grid gap-4">
+        <div>
+          <h3 className="font-semibold">Abonnér på dine jobs i iPhone-kalenderen</h3>
+          <p className="mt-1 text-sm text-zinc-400">
+            Bekræftede og afholdte jobs vises automatisk i kalenderen – med kunde, telefon, adresse og noter. iPhone henter
+            ændringer løbende (typisk inden for en time).
+          </p>
+        </div>
+        <a className="btn text-center" href={'webcal://' + FEED_URL + token}>
+          📅 Abonnér på iPhone
+        </a>
+        <ol className="list-decimal space-y-1 pl-5 text-sm text-zinc-400">
+          <li>Åbn denne side i Safari på iPhonen og tryk på knappen ovenfor.</li>
+          <li>Tryk <b>Abonner</b> og derefter <b>Tilføj</b>.</li>
+          <li>
+            Virker knappen ikke: kopiér linket og tilføj det under <i>Indstillinger → Kalender → Konti → Tilføj konto → Andet →
+            Tilføj abonnent-kalender</i>.
+          </li>
+        </ol>
+        <div className="flex flex-wrap gap-2">
+          <button className="btn-ghost text-sm" onClick={copy}>
+            {copied ? 'Kopieret ✓' : 'Kopiér link'}
+          </button>
+          <button className="btn-ghost text-sm text-red-300" onClick={regenerate}>
+            Lav nyt link
+          </button>
+        </div>
+        <p className="text-xs text-zinc-500">
+          Linket giver adgang til kundeoplysninger – del det ikke. Er det kommet ud, så tryk "Lav nyt link".
+        </p>
+      </div>
     </div>
   )
 }
