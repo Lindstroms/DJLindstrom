@@ -57,7 +57,7 @@ export async function fetchBookings(): Promise<Booking[]> {
   if (!supabase) return demoBookings
   const { data, error } = await supabase
     .from('bookings')
-    .select('*, event_types(name, icon), event_themes(name), booking_packages(sound_packages(name))')
+    .select('*, event_types(name, icon), event_themes(name), booking_packages(sound_packages(name)), song_wishes(*)')
     .order('event_date', { ascending: true })
   if (error) fail(error.message)
   return data as Booking[]

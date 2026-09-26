@@ -5,6 +5,7 @@ import './index.css'
 import Home from './pages/Home'
 import Thanks from './pages/Thanks'
 import Admin from './pages/admin/Admin'
+import MusicWishes from './pages/MusicWishes'
 
 // Enkel ramme til takkeside og admin
 function Page({ children }: { children: ReactNode }) {
@@ -28,6 +29,7 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/" element={<Home />} />
         <Route path="/tak" element={<Page><Thanks /></Page>} />
         <Route path="/admin" element={<Page><Admin /></Page>} />
+        <Route path="/musik/:token" element={<Page><MusicWishes /></Page>} />
       </Routes>
     </HashRouter>
   </StrictMode>,

@@ -8,6 +8,7 @@ import { downloadIcs } from '../../lib/ics'
 import { STATUS_LABELS, type Booking, type BookingStatus } from '../../lib/types'
 import Login from './Login'
 import Setup from './Setup'
+import { ENERGY_LABELS, WISH_LABELS, spotifySearchUrl, type WishKind } from '../../lib/music'
 
 const STATUS_COLORS: Record<BookingStatus, string> = {
   ny: 'bg-accent text-black',
@@ -226,6 +227,8 @@ function Dashboard() {
                     </label>
                   </div>
 
+                  <MusicSummary b={b} />
+
                   <div className="flex flex-wrap gap-2">
                     <button className="btn" onClick={() => downloadIcs(b)}>
                       📅 Tilføj til kalender
@@ -237,6 +240,94 @@ function Dashboard() {
           )
         })}
       </ul>
+    </div>
+  )
+}
+
+// Kundens musikønsker på en booking
+function MusicSummary({ b }: { b: Booking }) {
+  const [copied, setCopied] = useState(false)
+  const url = `${location.origin}${location.pathname}#/musik/${b.wishlist_token}`
+  const wishes = b.song_wishes ?? []
+  const hasPrefs = b.music_genres.length > 0 || b.music_energy || b.music_notes
+  const canShare = ['tilbud_sendt', 'bekraeftet'].includes(b.status)
+
+  const copy = async () => {
+    await navigator.clipboard.writeText(url)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div className="grid gap-3 rounded-xl border border-zinc-800 p-3">
+      <div className="flex items-center justify-between gap-2">
+        <h3 className="font-semibold">🎵 Musikønsker</h3>
+        {canShare && (
+          <button className="text-xs text-accent hover:underline" onClick={copy}>
+            {copied ? 'Link kopieret ✓' : 'Kopiér kundens link'}
+          </button>
+        )}
+      </div>
+
+      {!hasPrefs && wishes.length === 0 && (
+        <p className="text-zinc-500">
+          {b.status === 'bekraeftet'
+            ? 'Ingen ønsker endnu. Kunden har fået link på mail ved bekræftelsen.'
+            : 'Kunden får et link til musikønsker på mail, når bookingen sættes til Bekræftet.'}
+        </p>
+      )}
+
+      {b.music_genres.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {b.music_genres.map((g) => (
+            <span key={g} className="rounded-full bg-zinc-800 px-2.5 py-0.5 text-xs">
+              {g}
+            </span>
+          ))}
+        </div>
+      )}
+      {b.music_energy && (
+        <p>
+          <span className="text-zinc-400">Energi:</span> {b.music_energy}/5 – {ENERGY_LABELS[b.music_energy]}
+        </p>
+      )}
+      {b.music_notes && <p className="whitespace-pre-line text-zinc-300">“{b.music_notes}”</p>}
+
+      {(['must', 'wish', 'nope'] as WishKind[]).map((kind) => {
+        const items = wishes.filter((w) => w.kind === kind)
+        if (items.length === 0) return null
+        return (
+          <div key={kind}>
+            <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+              {WISH_LABELS[kind]} ({items.length})
+            </p>
+            <ul className="grid gap-1.5">
+              {items.map((w) => (
+                <li key={w.id} className="flex items-center gap-2">
+                  {w.artwork_url ? (
+                    <img src={w.artwork_url} alt="" className="size-8 rounded" loading="lazy" />
+                  ) : (
+                    <span className="grid size-8 place-items-center rounded bg-zinc-800 text-xs">♪</span>
+                  )}
+                  <span className="min-w-0 flex-1 truncate">
+                    {w.title} <span className="text-zinc-500">– {w.artist}</span>
+                  </span>
+                  {w.moment && <span className="shrink-0 rounded-full bg-accent/15 px-2 py-0.5 text-xs text-accent">{w.moment}</span>}
+                  <a
+                    href={spotifySearchUrl(w)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="shrink-0 text-xs text-emerald-400 hover:underline"
+                    title="Find på Spotify"
+                  >
+                    Spotify
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )
+      })}
     </div>
   )
 }

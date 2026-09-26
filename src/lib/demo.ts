@@ -49,5 +49,13 @@ export const demoBookings: Booking[] = [
     event_types: { name: 'Bryllup', icon: '💍' },
     event_themes: null,
     booking_packages: [{ sound_packages: { name: 'Stort lydanlæg' } }, { sound_packages: { name: 'Lys' } }],
+    wishlist_token: 'demo',
+    music_genres: ['Pop', 'Danske hits'],
+    music_energy: 4,
+    music_notes: 'Mange ældre gæster til middagen',
+    song_wishes: [
+      { id: 'w1', kind: 'must', moment: 'Første dans', title: 'Perfect', artist: 'Ed Sheeran', artwork_url: null, preview_url: null, external_url: null, created_at: '' },
+      { id: 'w2', kind: 'nope', moment: null, title: 'Macarena', artist: 'Los Del Rio', artwork_url: null, preview_url: null, external_url: null, created_at: '' },
+    ],
   },
 ]

@@ -54,4 +54,5 @@ npm run dev
 - [x] Priser gemt i databasen, men skjult for kunder (`settings.show_prices`)
 - [x] E-mails (kvittering til kunde + besked til Viktor) – kræver Resend-opsætning
 - [x] Admin → Opsætning: opret/rediger/skjul event-typer, temaer, lydpakker, blokerede datoer og "vis priser"
+- [x] Musikønsker: kunden får link ved bekræftelse, søger sange (iTunes/Deezer), vælger genrer/energi; vises i admin
 - [x] Abonnent-kalender (ICS-feed) til iPhone – Admin → Opsætning → Kalender

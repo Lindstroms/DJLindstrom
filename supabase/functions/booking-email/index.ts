@@ -9,7 +9,8 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 
 const EMAIL_FROM = Deno.env.get('EMAIL_FROM') ?? 'DJ Lindstrom <booking@fam-lindstrom.dk>'
 const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL') ?? 'viktor@fam-lindstrom.dk'
-const ADMIN_URL = 'https://lindstroms.github.io/DJLindstrom/#/admin'
+const SITE_URL = Deno.env.get('SITE_URL') ?? 'https://lindstroms.github.io/DJLindstrom/'
+const ADMIN_URL = SITE_URL + '#/admin'
 
 // Accepterer både RESEND_API_KEY og resend_api_key
 const resendKey = () => Deno.env.get('RESEND_API_KEY') ?? Deno.env.get('resend_api_key')
@@ -70,8 +71,9 @@ Deno.serve(async (req) => {
     return new Response(`RESEND_API_KEY mangler. Fundne secrets: ${names.join(', ') || '(ingen)'}`, { status: 500 })
   }
 
-  const { id } = await req.json().catch(() => ({}))
+  const { id, kind } = await req.json().catch(() => ({}))
   if (typeof id !== 'string') return new Response('Mangler id', { status: 400 })
+  if (kind === 'confirmed') return sendConfirmed(id)
 
   // Markér som sendt atomisk: kun nye, ikke-notificerede forespørgsler fra de sidste 15 minutter.
   // Det gør funktionen sikker at kalde flere gange og ubrugelig til spam.
@@ -136,3 +138,50 @@ Deno.serve(async (req) => {
   }
   return new Response('OK', { status: 200 })
 })
+
+// Bekræftelse til kunden med link til musikønsker – sendes én gang, når status bliver 'bekraeftet'
+async function sendConfirmed(id: string) {
+  const { data: b, error } = await db
+    .from('bookings')
+    .update({ confirmed_notified_at: new Date().toISOString() })
+    .eq('id', id)
+    .eq('status', 'bekraeftet')
+    .is('confirmed_notified_at', null)
+    .select('*, event_types(name), event_themes(name)')
+    .maybeSingle()
+
+  if (error) return new Response(error.message, { status: 500 })
+  if (!b) return new Response('Intet at sende', { status: 200 })
+
+  const event = [b.event_types?.name, b.event_themes?.name].filter(Boolean).join(' – ')
+  const when = `${dateDa(b.event_date)} kl. ${String(b.start_time).slice(0, 5)}, ${hoursDa(b.hours)}`
+  const wishUrl = `${SITE_URL}#/musik/${b.wishlist_token}`
+  const firstName = String(b.customer_name).split(' ')[0]
+
+  const html = layout(
+    'Din booking er bekræftet 🎉',
+    `<p>Hej ${esc(firstName)}</p>
+     <p>Fedt – jeg glæder mig til at spille til jeres fest!</p>
+     ${table([
+       ['Event', event],
+       ['Tidspunkt', when],
+       ['Adresse', b.venue_address],
+       ['Pris', b.quoted_price != null ? `${Number(b.quoted_price).toLocaleString('da-DK')} kr.` : null],
+     ])}
+     <p style="margin-top:20px"><b>Fortæl mig om musikken</b><br>
+     Vælg stemning og genrer, og søg de sange frem, der <i>skal</i> spilles – og dem der ikke må. Du kan rette i ønskerne helt frem til festen.</p>
+     <p style="margin-top:20px"><a href="${wishUrl}" style="background:#e040fb;color:#000;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:700">Musikønsker 🎵</a></p>
+     <p style="color:#666;font-size:14px">Del gerne linket med din partner eller medarrangør. Har du spørgsmål, så svar blot på denne mail.</p>
+     <p>Mvh<br>DJ Lindstrom</p>`,
+  )
+
+  try {
+    await send(b.email, `Din booking er bekræftet – ${event}`, html, ADMIN_EMAIL)
+  } catch (e) {
+    // Frigiv så Viktor kan prøve igen ved at sætte status på ny
+    await db.from('bookings').update({ confirmed_notified_at: null }).eq('id', id)
+    console.error(String(e))
+    return new Response(`Fejl ved afsendelse:\n${e}`, { status: 502 })
+  }
+  return new Response('OK', { status: 200 })
+}
