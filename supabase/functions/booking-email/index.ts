@@ -7,10 +7,12 @@
 //   ADMIN_EMAIL     – valgfri, standard "viktor@fam-lindstrom.dk"
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
-const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 const EMAIL_FROM = Deno.env.get('EMAIL_FROM') ?? 'DJ Lindstrom <booking@fam-lindstrom.dk>'
 const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL') ?? 'viktor@fam-lindstrom.dk'
 const ADMIN_URL = 'https://lindstroms.github.io/DJLindstrom/#/admin'
+
+// Accepterer både RESEND_API_KEY og resend_api_key
+const resendKey = () => Deno.env.get('RESEND_API_KEY') ?? Deno.env.get('resend_api_key')
 
 const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
 
@@ -54,7 +56,7 @@ function layout(title: string, body: string) {
 async function send(to: string, subject: string, html: string, replyTo?: string) {
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
-    headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+    headers: { Authorization: `Bearer ${resendKey()}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ from: EMAIL_FROM, to: [to], subject, html, reply_to: replyTo }),
   })
   if (!res.ok) throw new Error(`Resend ${res.status}: ${await res.text()}`)
@@ -62,7 +64,11 @@ async function send(to: string, subject: string, html: string, replyTo?: string)
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 })
-  if (!RESEND_API_KEY) return new Response('RESEND_API_KEY mangler', { status: 500 })
+  if (!resendKey()) {
+    // Kun navne (ikke værdier) – hjælper med at finde stavefejl i secret-navnet
+    const names = Object.keys(Deno.env.toObject()).filter((k) => !k.startsWith('SUPABASE_') && !k.startsWith('DENO_'))
+    return new Response(`RESEND_API_KEY mangler. Fundne secrets: ${names.join(', ') || '(ingen)'}`, { status: 500 })
+  }
 
   const { id } = await req.json().catch(() => ({}))
   if (typeof id !== 'string') return new Response('Mangler id', { status: 400 })
@@ -124,8 +130,9 @@ Deno.serve(async (req) => {
   ])
   const failed = results.filter((r) => r.status === 'rejected') as PromiseRejectedResult[]
   if (failed.length) {
-    console.error(failed.map((f) => String(f.reason)).join('\n'))
-    return new Response('Fejl ved afsendelse', { status: 502 })
+    const msg = failed.map((f) => String(f.reason)).join('\n')
+    console.error(msg)
+    return new Response(`Fejl ved afsendelse:\n${msg}`, { status: 502 })
   }
   return new Response('OK', { status: 200 })
 })
