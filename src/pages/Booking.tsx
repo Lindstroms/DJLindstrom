@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DayPicker } from 'react-day-picker'
 import { da } from 'react-day-picker/locale'
 import { format, parseISO, startOfToday } from 'date-fns'
 import { da as daFns } from 'date-fns/locale'
 import 'react-day-picker/style.css'
-import { fetchCatalog, submitBookingRequest } from '../lib/api'
+import { submitBookingRequest } from '../lib/api'
 import type { Catalog } from '../lib/types'
 
 const STEPS = ['Event', 'Dato & tid', 'Lyd & lys', 'Oplysninger', 'Send']
@@ -52,18 +52,34 @@ const emptyForm: Form = {
 const kr = (n: number | null | undefined) =>
   n == null ? '' : n.toLocaleString('da-DK', { style: 'currency', currency: 'DKK', maximumFractionDigits: 0 })
 
-export default function Booking() {
+// preselect: event-type valgt fra forsiden (nonce gør, at samme type kan vælges igen)
+export default function Booking({ catalog, preselect }: { catalog: Catalog; preselect?: { id: string; nonce: number } }) {
   const navigate = useNavigate()
-  const [catalog, setCatalog] = useState<Catalog | null>(null)
-  const [loadError, setLoadError] = useState('')
   const [step, setStep] = useState(0)
   const [form, setForm] = useState<Form>(emptyForm)
   const [sending, setSending] = useState(false)
   const [submitError, setSubmitError] = useState('')
+  const topRef = useRef<HTMLDivElement>(null)
+  const firstRender = useRef(true)
+
+  // Ved skift af trin: rul toppen af flowet i syne (vigtigt på mobil)
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false
+      return
+    }
+    const top = topRef.current?.getBoundingClientRect().top ?? 0
+    if (top < 0) topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [step])
 
   useEffect(() => {
-    fetchCatalog().then(setCatalog).catch((e: Error) => setLoadError(e.message))
-  }, [])
+    if (!preselect) return
+    const t = catalog.eventTypes.find((x) => x.id === preselect.id)
+    if (!t) return
+    chooseEventType(t.id)
+    setStep(catalog.themes.some((th) => th.event_type_id === t.id) ? 0 : 1)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preselect])
 
   const set = <K extends keyof Form>(key: K, value: Form[K]) => setForm((f) => ({ ...f, [key]: value }))
 
@@ -79,8 +95,8 @@ export default function Booking() {
     return opts
   }, [eventType])
 
-  const chooseEventType = (id: string) => {
-    const t = catalog!.eventTypes.find((x) => x.id === id)!
+  function chooseEventType(id: string) {
+    const t = catalog.eventTypes.find((x) => x.id === id)!
     setForm((f) => ({
       ...f,
       eventTypeId: id,
@@ -128,17 +144,8 @@ export default function Booking() {
     }
   }
 
-  if (loadError) return <p className="text-red-400">{loadError}</p>
-  if (!catalog) return <p className="text-zinc-400">Indlæser …</p>
-
   return (
-    <div>
-      <header className="mb-8 text-center">
-        <h1 className="text-3xl font-black tracking-tight sm:text-4xl">
-          Book <span className="text-accent">DJ Lindstrom</span>
-        </h1>
-        <p className="mt-2 text-zinc-400">Send en uforpligtende forespørgsel – du får et tilbud inden for 24 timer.</p>
-      </header>
+    <div ref={topRef} className="scroll-mt-24">
 
       {/* Fremskridt */}
       <ol className="mb-6 flex gap-1.5" aria-label="Trin">

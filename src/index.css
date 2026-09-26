@@ -3,6 +3,7 @@
 @theme {
   --color-accent: #e040fb;
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Unbounded', 'Inter', ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {
@@ -23,8 +24,11 @@
   .card {
     @apply rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5 backdrop-blur sm:p-6;
   }
+  .section-title {
+    @apply font-display text-3xl font-black tracking-tight sm:text-5xl;
+  }
   .step-title {
-    @apply mb-4 text-xl font-bold;
+    @apply mb-4 font-display text-xl font-bold;
   }
   .choice {
     @apply cursor-pointer rounded-xl border border-zinc-800 bg-zinc-950/60 p-4 transition hover:border-zinc-600;
@@ -68,4 +72,225 @@
 }
 .rdp-disabled {
   @apply line-through opacity-30;
+}
+
+@layer components {
+/* ---------------- Forside ---------------- */
+
+.text-gradient {
+  background: linear-gradient(90deg, #e040fb, #a78bfa 45%, #22d3ee);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shine 6s linear infinite;
+}
+@keyframes shine {
+  to {
+    background-position: 200% center;
+  }
+}
+
+.btn-glow {
+  box-shadow: 0 0 0 0 rgb(224 64 251 / 0.5), 0 8px 30px -8px rgb(224 64 251 / 0.8);
+}
+.btn-glow:hover {
+  box-shadow: 0 0 0 4px rgb(224 64 251 / 0.2), 0 10px 40px -6px rgb(224 64 251 / 0.9);
+}
+
+.hero-in {
+  animation: rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+/* Farvede lys-klatter i baggrunden */
+.blob {
+  position: absolute;
+  z-index: -20;
+  border-radius: 9999px;
+  filter: blur(80px);
+  opacity: 0.55;
+  animation: float 14s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+.blob-a {
+  width: 28rem;
+  height: 28rem;
+  left: -8rem;
+  top: -6rem;
+  background: #e040fb;
+  opacity: 0.35;
+}
+.blob-b {
+  width: 24rem;
+  height: 24rem;
+  right: 10%;
+  bottom: -8rem;
+  background: #6366f1;
+  opacity: 0.35;
+  animation-delay: -7s;
+}
+.blob-c {
+  width: 30rem;
+  height: 30rem;
+  left: 50%;
+  top: 10%;
+  translate: -50% 0;
+  background: #a21caf;
+  opacity: 0.18;
+}
+@keyframes float {
+  to {
+    transform: translate(3rem, 2rem) scale(1.1);
+  }
+}
+
+/* Vinylplade */
+.vinyl {
+  border-radius: 9999px;
+  background:
+    radial-gradient(circle, transparent 0 28%, rgb(255 255 255 / 0.04) 28.5% 29%, transparent 29.5%),
+    repeating-radial-gradient(circle, #111 0 2px, #1a1a22 2px 4px),
+    #111;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.06),
+    0 30px 80px -20px rgb(224 64 251 / 0.35);
+  display: grid;
+  place-items: center;
+  animation: spin 8s linear infinite;
+  position: relative;
+}
+.vinyl::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: conic-gradient(from 20deg, transparent 0 10%, rgb(255 255 255 / 0.08) 14%, transparent 20% 60%, rgb(255 255 255 / 0.06) 64%, transparent 70%);
+}
+.vinyl-label {
+  width: 34%;
+  aspect-ratio: 1;
+  border-radius: 9999px;
+  background: radial-gradient(circle, #0b0b12 0 7%, transparent 7.5%), linear-gradient(135deg, #e040fb, #6366f1);
+  display: grid;
+  place-items: center;
+}
+@keyframes spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+/* Equalizer */
+.eq {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 100%;
+  padding: 0 4px;
+}
+.eq span {
+  flex: 1;
+  height: 100%;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(to top, #e040fb, #6366f1 70%, transparent);
+  transform-origin: bottom;
+  animation: eq 1s ease-in-out infinite alternate;
+}
+@keyframes eq {
+  from {
+    transform: scaleY(0.12);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* Rullende bånd */
+.marquee {
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 40s linear infinite;
+}
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Kort */
+.glow-card {
+  transition:
+    transform 0.3s,
+    border-color 0.3s,
+    opacity 0.7s;
+}
+.glow-card:hover {
+  border-color: rgb(224 64 251 / 0.4);
+}
+.event-card {
+  @apply relative cursor-pointer overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5 sm:p-6;
+  transition:
+    transform 0.3s,
+    border-color 0.3s,
+    box-shadow 0.3s,
+    opacity 0.7s;
+}
+.event-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 20% 0%, rgb(224 64 251 / 0.18), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.event-card:hover {
+  transform: translateY(-4px);
+  border-color: rgb(224 64 251 / 0.5);
+  box-shadow: 0 20px 40px -20px rgb(224 64 251 / 0.5);
+}
+.event-card:hover::before {
+  opacity: 1;
+}
+
+/* Fade ind ved scroll */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1),
+    border-color 0.3s,
+    box-shadow 0.3s;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+.event-card.reveal.is-visible:hover {
+  transform: translateY(-4px);
+}
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }

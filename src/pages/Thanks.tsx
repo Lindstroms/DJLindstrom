@@ -1,6 +1,8 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
 export default function Thanks() {
+  useEffect(() => window.scrollTo(0, 0), [])
   return (
     <div className="card mt-10 text-center">
       <div className="text-5xl">🎧</div>
