@@ -10,10 +10,13 @@ export const content = {
   hero: {
     kicker: 'DJ til fest, bryllup & firmaevent',
     tagline: 'Fyld dansegulvet – fra første skål til sidste sang.',
+    image: 'img/hero.webp', // baggrund i toppen (i /public)
   },
 
   about: {
     title: 'Hej, jeg er Viktor',
+    image: 'img/viktor-pult.webp',
+    imageAlt: 'DJ Lindstrom bag pulten',
     paragraphs: [
       'Jeg spiller under navnet DJ Lindstrom, og jeg elsker at læse et dansegulv og finde præcis det nummer, der får alle op at stå.',
       'Uanset om det er en 18 års fødselsdag, et bryllup eller en firmafest, aftaler vi musikken på forhånd, så den passer til jer og jeres gæster – fra de nyeste hits til klassikerne alle kan synge med på.',

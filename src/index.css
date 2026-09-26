@@ -150,6 +150,19 @@
   }
 }
 
+/* Langsom zoom på hero-billedet */
+.hero-bg {
+  animation: kenburns 24s ease-in-out infinite alternate;
+}
+@keyframes kenburns {
+  from {
+    transform: scale(1.02);
+  }
+  to {
+    transform: scale(1.12) translate(-1.5%, -1%);
+  }
+}
+
 /* Vinylplade */
 .vinyl {
   border-radius: 9999px;

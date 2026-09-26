@@ -104,10 +104,16 @@ export default function Home() {
 
       {/* Hero */}
       <section className="relative isolate flex min-h-[88svh] items-center overflow-hidden">
+        <img
+          src={import.meta.env.BASE_URL + content.hero.image}
+          alt=""
+          fetchPriority="high"
+          className="hero-bg absolute inset-0 -z-30 size-full object-cover object-[70%_center]"
+        />
+        {/* Mørk overgang så teksten kan læses */}
+        <div className="absolute inset-0 -z-20 bg-gradient-to-r from-[#0b0b12] via-[#0b0b12]/75 to-[#0b0b12]/20" />
+        <div className="absolute inset-0 -z-20 bg-gradient-to-t from-[#0b0b12] via-transparent to-[#0b0b12]/40" />
         <div className="blob blob-a" />
-        <div className="blob blob-b" />
-        <Vinyl className="pointer-events-none absolute -right-40 top-1/2 -z-10 hidden size-[34rem] -translate-y-1/2 opacity-80 md:grid" />
-        <Vinyl className="pointer-events-none absolute -bottom-40 -right-32 -z-10 size-80 opacity-30 md:hidden" />
 
         <div className="mx-auto w-full max-w-6xl px-4 pb-28 pt-12">
           <p className="hero-in mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-accent">{content.hero.kicker}</p>
@@ -147,11 +153,17 @@ export default function Home() {
 
       {/* Om Viktor */}
       <section className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-20 md:grid-cols-2 md:py-28">
-        <div className="reveal relative mx-auto aspect-square w-full max-w-sm">
+        <div className="reveal relative mx-auto aspect-[3/4] w-full max-w-sm">
           <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-accent/40 via-fuchsia-900/20 to-indigo-600/30 blur-2xl" />
-          <div className="relative grid size-full place-items-center overflow-hidden rounded-[2rem] border border-white/10 bg-zinc-950">
-            <Vinyl className="size-[85%]" />
+          <div className="relative size-full overflow-hidden rounded-[2rem] border border-white/10 bg-zinc-950">
+            <img
+              src={import.meta.env.BASE_URL + content.about.image}
+              alt={content.about.imageAlt}
+              loading="lazy"
+              className="size-full object-cover"
+            />
           </div>
+          <Vinyl className="absolute -bottom-8 -right-6 size-28 sm:-right-10 sm:size-36" />
         </div>
         <div className="reveal">
           <h2 className="section-title">{content.about.title}</h2>
