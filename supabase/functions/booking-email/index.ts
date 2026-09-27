@@ -3,11 +3,11 @@
 //
 // Secrets (Supabase: Edge Functions -> Secrets):
 //   RESEND_API_KEY  – påkrævet
-//   EMAIL_FROM      – valgfri, standard "DJ Lindstrom <booking@fam-lindstrom.dk>"
+//   EMAIL_FROM      – valgfri, standard "DJ Lindstrøm <booking@fam-lindstrom.dk>"
 //   ADMIN_EMAIL     – valgfri, standard "viktor@fam-lindstrom.dk"
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
-const EMAIL_FROM = Deno.env.get('EMAIL_FROM') ?? 'DJ Lindstrom <booking@fam-lindstrom.dk>'
+const EMAIL_FROM = Deno.env.get('EMAIL_FROM') ?? 'DJ Lindstrøm <booking@fam-lindstrom.dk>'
 const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL') ?? 'viktor@fam-lindstrom.dk'
 const SITE_URL = Deno.env.get('SITE_URL') ?? 'https://lindstroms.github.io/DJLindstrom/'
 const ADMIN_URL = SITE_URL + '#/admin'
@@ -46,7 +46,7 @@ function table(rows: Row[]) {
 function layout(title: string, body: string) {
   return `<!doctype html><html><body style="margin:0;background:#f4f4f7;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#111">
 <div style="max-width:560px;margin:0 auto;padding:24px">
-  <div style="background:#0b0b12;color:#fff;border-radius:12px 12px 0 0;padding:20px 24px;font-weight:900;letter-spacing:2px">DJ <span style="color:#e040fb">LINDSTROM</span></div>
+  <div style="background:#0b0b12;color:#fff;border-radius:12px 12px 0 0;padding:20px 24px;font-weight:900;letter-spacing:2px">DJ <span style="color:#e040fb">LINDSTRØM</span></div>
   <div style="background:#fff;border-radius:0 0 12px 12px;padding:24px">
     <h1 style="font-size:20px;margin:0 0 16px">${esc(title)}</h1>
     ${body}
@@ -113,7 +113,7 @@ Deno.serve(async (req) => {
      <p style="margin-top:20px;font-weight:600">Det har du sendt:</p>
      ${table(details)}
      <p style="margin-top:20px;color:#666;font-size:14px">Har du spørgsmål, så svar blot på denne mail.</p>
-     <p>Mvh<br>DJ Lindstrom</p>`,
+     <p>Mvh<br>DJ Lindstrøm</p>`,
   )
 
   const adminHtml = layout(
@@ -129,7 +129,7 @@ Deno.serve(async (req) => {
   )
 
   const results = await Promise.allSettled([
-    send(b.email, 'Tak for din forespørgsel – DJ Lindstrom', customerHtml, ADMIN_EMAIL),
+    send(b.email, 'Tak for din forespørgsel – DJ Lindstrøm', customerHtml, ADMIN_EMAIL),
     send(ADMIN_EMAIL, `Ny forespørgsel: ${event} ${b.event_date}`, adminHtml, b.email),
   ])
   const failed = results.filter((r) => r.status === 'rejected') as PromiseRejectedResult[]
@@ -174,7 +174,7 @@ async function sendConfirmed(id: string) {
      Vælg stemning og genrer, og søg de sange frem, der <i>skal</i> spilles – og dem der ikke må. Du kan rette i ønskerne helt frem til festen.</p>
      <p style="margin-top:20px"><a href="${wishUrl}" style="background:#e040fb;color:#000;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:700">Musikønsker 🎵</a></p>
      <p style="color:#666;font-size:14px">Del gerne linket med din partner eller medarrangør. Har du spørgsmål, så svar blot på denne mail.</p>
-     <p>Mvh<br>DJ Lindstrom</p>`,
+     <p>Mvh<br>DJ Lindstrøm</p>`,
   )
 
   try {
@@ -222,7 +222,7 @@ async function sendReviewRequest(id: string) {
      <p style="margin:24px 0 8px;font-weight:600">Hvor mange stjerner giver du?</p>
      <p style="margin:0">${starLinks}</p>
      <p style="margin-top:24px"><a href="${url}" style="background:#e040fb;color:#000;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:700">Skriv en anmeldelse</a></p>
-     <p>Mvh<br>DJ Lindstrom</p>`,
+     <p>Mvh<br>DJ Lindstrøm</p>`,
   )
 
   try {

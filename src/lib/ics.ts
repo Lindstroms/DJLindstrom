@@ -28,7 +28,7 @@ export function bookingToIcs(b: Booking): string {
   return [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//DJ Lindstrom//Booking//DA',
+    'PRODID:-//DJ Lindstrøm//Booking//DA',
     'BEGIN:VEVENT',
     `UID:${b.id}@djlindstrom`,
     `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').slice(0, 15)}Z`,

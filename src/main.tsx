@@ -16,7 +16,7 @@ function Page({ children }: { children: ReactNode }) {
     <div className="mx-auto min-h-dvh max-w-2xl px-4 py-8">
       <nav className="mb-8 flex items-center justify-between">
         <Link to="/" className="font-display text-lg font-black tracking-[0.2em]">
-          DJ <span className="text-accent">LINDSTROM</span>
+          DJ <span className="text-accent">LINDSTRØM</span>
         </Link>
       </nav>
       {children}

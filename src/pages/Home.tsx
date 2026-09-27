@@ -51,7 +51,7 @@ function Vinyl({ className = '' }: { className?: string }) {
   return (
     <div className={`vinyl ${className}`} aria-hidden="true">
       <div className="vinyl-label">
-        <span className="font-display text-[0.6rem] tracking-[0.3em] text-black">LINDSTROM</span>
+        <span className="font-display text-[0.6rem] tracking-[0.3em] text-black">LINDSTRØM</span>
       </div>
     </div>
   )
@@ -87,7 +87,7 @@ export default function Home() {
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             className="cursor-pointer font-display text-base font-black tracking-[0.2em] sm:text-lg"
           >
-            DJ <span className="text-accent">LINDSTROM</span>
+            DJ <span className="text-accent">LINDSTRØM</span>
           </button>
           <div className="flex items-center gap-2">
             <a
@@ -124,12 +124,12 @@ export default function Home() {
           <h1 className="hero-in font-display text-[clamp(2.8rem,11vw,7.5rem)] font-black leading-[0.9] tracking-tight [animation-delay:.1s]">
             DJ
             <br />
-            <span className="text-gradient">LINDSTROM</span>
+            <span className="text-gradient">LINDSTRØM</span>
           </h1>
           <p className="hero-in mt-6 max-w-md text-lg text-zinc-300 [animation-delay:.2s] sm:text-xl">{content.hero.tagline}</p>
           <div className="hero-in mt-8 flex flex-wrap gap-3 [animation-delay:.3s]">
             <button className="btn btn-glow text-lg" onClick={scrollToBook}>
-              Book DJ Lindstrom
+              Book DJ Lindstrøm
             </button>
             <button className="btn-ghost text-lg" onClick={() => document.getElementById('events')?.scrollIntoView({ behavior: 'smooth' })}>
               Se events
@@ -296,7 +296,7 @@ export default function Home() {
         <div className="mx-auto max-w-2xl px-4">
           <div className="reveal mb-8 text-center">
             <h2 className="section-title">
-              Book <span className="text-gradient">DJ Lindstrom</span>
+              Book <span className="text-gradient">DJ Lindstrøm</span>
             </h2>
             <p className="mt-3 text-zinc-400">Send en uforpligtende forespørgsel – du får et tilbud inden for 24 timer.</p>
           </div>
@@ -309,9 +309,9 @@ export default function Home() {
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 py-10 text-center sm:flex-row sm:justify-between sm:text-left">
           <div>
             <p className="font-display font-black tracking-[0.2em]">
-              DJ <span className="text-accent">LINDSTROM</span>
+              DJ <span className="text-accent">LINDSTRØM</span>
             </p>
-            <p className="mt-1 text-sm text-zinc-500">© {new Date().getFullYear()} DJ Lindstrom</p>
+            <p className="mt-1 text-sm text-zinc-500">© {new Date().getFullYear()} DJ Lindstrøm</p>
           </div>
           <div className="flex flex-col items-center gap-2 text-sm sm:items-end">
             <a href={content.instagram.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-zinc-300 hover:text-white">

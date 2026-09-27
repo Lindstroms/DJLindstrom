@@ -213,7 +213,7 @@ function DjView() {
               Ønsk en <span className="text-gradient">sang</span> 🎶
             </p>
             {qr && <img src={qr} alt="QR-kode til live-ønsker" className="w-full max-w-sm rounded-3xl" />}
-            <p className="text-lg text-zinc-300">Scan med kameraet og send dit ønske til DJ Lindstrom</p>
+            <p className="text-lg text-zinc-300">Scan med kameraet og send dit ønske til DJ Lindstrøm</p>
             <p className="text-sm text-zinc-600">Tryk for at lukke</p>
           </div>
         </div>

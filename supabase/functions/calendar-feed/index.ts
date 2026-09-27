@@ -117,10 +117,10 @@ Deno.serve(async (req) => {
   const ics = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//DJ Lindstrom//Booking//DA',
+    'PRODID:-//DJ Lindstrøm//Booking//DA',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
-    'X-WR-CALNAME:DJ Lindstrom – jobs',
+    'X-WR-CALNAME:DJ Lindstrøm – jobs',
     'X-WR-TIMEZONE:Europe/Copenhagen',
     'REFRESH-INTERVAL;VALUE=DURATION:PT15M',
     'X-PUBLISHED-TTL:PT15M',

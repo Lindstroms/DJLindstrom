@@ -106,7 +106,7 @@ export default function Review() {
             checked={consent}
             onChange={(e) => setConsent(e.target.checked)}
           />
-          <span className="text-zinc-300">DJ Lindstrom må gerne vise min anmeldelse på hjemmesiden.</span>
+          <span className="text-zinc-300">DJ Lindstrøm må gerne vise min anmeldelse på hjemmesiden.</span>
         </label>
 
         {error && <p className="rounded-lg bg-red-950 p-3 text-sm text-red-300">{error}</p>}

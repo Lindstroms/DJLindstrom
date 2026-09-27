@@ -359,7 +359,7 @@ export default function Booking({ catalog, preselect }: { catalog: Catalog; pres
                 onChange={(e) => set('consent', e.target.checked)}
               />
               <span className="text-zinc-300">
-                Jeg accepterer, at DJ Lindstrom gemmer mine oplysninger for at kunne sende et tilbud og håndtere
+                Jeg accepterer, at DJ Lindstrøm gemmer mine oplysninger for at kunne sende et tilbud og håndtere
                 bookingen. Oplysningerne deles ikke med andre.
               </span>
             </label>

@@ -1,6 +1,6 @@
-# DJ Lindstrom – booking
+# DJ Lindstrøm – booking
 
-Booking-app til DJ Lindstrom. Kunder sender en forespørgsel, og Viktor håndterer dem i admin.
+Booking-app til DJ Lindstrøm. Kunder sender en forespørgsel, og Viktor håndterer dem i admin.
 
 - **Kundeside:** `https://lindstroms.github.io/DJLindstrom/`
 - **Admin:** `https://lindstroms.github.io/DJLindstrom/#/admin`
