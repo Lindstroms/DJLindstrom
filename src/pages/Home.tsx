@@ -76,7 +76,6 @@ function InAction() {
     <section className="mx-auto max-w-6xl px-4 py-20">
       <div className="reveal mb-10 text-center">
         <h2 className="section-title">{a.title}</h2>
-        <p className="mx-auto mt-3 max-w-xl text-zinc-400">{a.text}</p>
       </div>
       <div className="mx-auto grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="reveal relative aspect-[9/16] overflow-hidden rounded-[2rem] border border-white/10 bg-zinc-900 sm:aspect-[3/4]">
@@ -253,14 +252,11 @@ export default function Home() {
         ))}
       </section>
 
-      {/* I aktion: video + foto */}
-      <InAction />
-
       {/* Event-typer */}
       <section id="events" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-20">
         <div className="reveal mb-10 text-center">
-          <h2 className="section-title">Hvad skal fejres?</h2>
-          <p className="mt-3 text-zinc-400">Vælg din type fest – så er du allerede i gang med bookingen.</p>
+          <h2 className="section-title">Events</h2>
+          <p className="mt-3 text-zinc-400">Vælg eventtype og start din booking.</p>
         </div>
         {loadError && <p className="text-center text-red-400">{loadError}</p>}
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
@@ -287,9 +283,9 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Sådan foregår det */}
+      {/* Sådan arbejder jeg */}
       <section className="mx-auto max-w-6xl px-4 py-12">
-        <h2 className="reveal section-title mb-10 text-center">Sådan foregår det</h2>
+        <h2 className="reveal section-title mb-10 text-center">Sådan arbejder jeg</h2>
         <ol className="grid gap-4 sm:grid-cols-3">
           {content.steps.map((s, i) => (
             <li key={s.title} className="reveal card relative overflow-hidden" style={{ transitionDelay: `${i * 80}ms` }}>
@@ -356,11 +352,14 @@ export default function Home() {
             <h2 className="section-title">
               Book <span className="text-gradient">DJ Lindstrøm</span>
             </h2>
-            <p className="mt-3 text-zinc-400">Send en uforpligtende forespørgsel – du får et tilbud inden for 24 timer.</p>
+            <p className="mt-3 text-zinc-400">Fortæl om jeres event – du har et tilbud inden for 24 timer.</p>
           </div>
           {catalog ? <Booking catalog={catalog} preselect={preselect} /> : !loadError && <p className="text-center text-zinc-400">Indlæser …</p>}
         </div>
       </section>
+
+      {/* I aktion: video + foto */}
+      <InAction />
 
       {/* Footer */}
       <footer className="border-t border-white/5">

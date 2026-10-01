@@ -8,31 +8,30 @@ export const content = {
   email: 'viktor@fam-lindstrom.dk',
 
   hero: {
-    kicker: 'DJ til fest, bryllup & firmaevent',
-    tagline: 'Fyld dansegulvet – fra første skål til sidste sang.',
+    kicker: 'Firmaevents · Bryllupper · Private fester',
+    tagline: 'Lyd, energi og timing, der løfter hele aftenen.',
     image: 'img/hero-viktor.webp', // billede i toppen (i /public)
     imageAlt: 'DJ Lindstrøm bag pulten til en havefest',
   },
 
   about: {
-    title: 'Hej, jeg er Viktor',
+    title: 'Viktor bag pulten',
     image: 'img/viktor-bar.webp',
     imageAlt: 'Viktor – DJ Lindstrøm – bag pulten',
     paragraphs: [
-      'Jeg spiller under navnet DJ Lindstrøm, og jeg elsker at læse et dansegulv og finde præcis det nummer, der får alle op at stå.',
-      'Uanset om det er en 18 års fødselsdag, et bryllup eller en firmafest, aftaler vi musikken på forhånd, så den passer til jer og jeres gæster – fra de nyeste hits til klassikerne alle kan synge med på.',
+      'Jeg læser rummet og bygger aftenen op – fra lounge-stemning under middagen til et fyldt dansegulv, når det gælder.',
+      'Hvert set skræddersys til jeres gæster, lokation og program. Med professionelt anlæg, lys og fuld teknisk opsætning får I en oplevelse, der matcher eventets niveau.',
     ],
   },
 
   highlights: [
-    { icon: '🎶', title: 'Musik til alle', text: 'Hits, klassikere og ønsker – tilpasset jeres gæster.' },
-    { icon: '🔊', title: 'Lyd & lys', text: 'Jeg kan medbringe anlæg og lys, der passer til stedet.' },
-    { icon: '⚡', title: 'Hurtigt svar', text: 'Du får et uforpligtende tilbud inden for 24 timer.' },
+    { icon: '🎚️', title: 'Skræddersyet set', text: 'Musik tilpasset publikum, tidspunkt og stemning – aldrig en standardplayliste.' },
+    { icon: '🔊', title: 'Pro lyd & lys', text: 'Professionelt anlæg og lys, dimensioneret til rummet.' },
+    { icon: '⚡', title: 'Svar inden for 24 timer', text: 'Et konkret tilbud – hurtigt og uden binding.' },
   ],
 
   inAction: {
     title: 'Se mig i aktion',
-    text: 'Fra havefest til firmaevent – jeg medbringer anlæg, der passer til rummet, og sørger for at lyden sidder lige i skabet.',
     video: 'img/viktor-live.mp4',
     videoWebm: 'img/viktor-live.webm',
     poster: 'img/viktor-live-poster.webp',
@@ -41,9 +40,9 @@ export const content = {
   },
 
   steps: [
-    { title: 'Send en forespørgsel', text: 'Vælg event, dato og hvad du har brug for. Det tager 2 minutter.' },
-    { title: 'Få et tilbud', text: 'Jeg vender tilbage med et tilbud inden for 24 timer.' },
-    { title: 'Fest!', text: 'Vi aftaler musikken, og jeg sørger for stemningen.' },
+    { title: 'Forespørgsel', text: 'Fortæl om eventet – det tager to minutter.' },
+    { title: 'Tilbud', text: 'Du får et skræddersyet tilbud inden for 24 timer.' },
+    { title: 'Showtime', text: 'Musik og teknik er på plads. I nyder aftenen.' },
   ],
 
   // Billeder til galleriet – læg filerne i /public/gallery/ og skriv navnene her,
