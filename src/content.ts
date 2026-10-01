@@ -15,12 +15,12 @@ export const content = {
   },
 
   about: {
-    title: 'Viktor bag pulten',
+    title: 'Viktor Lindstrøm',
     image: 'img/viktor-bar.webp',
     imageAlt: 'Viktor – DJ Lindstrøm – bag pulten',
     paragraphs: [
-      'Jeg læser rummet og bygger aftenen op – fra lounge-stemning under middagen til et fyldt dansegulv, når det gælder.',
-      'Hvert set skræddersys til jeres gæster, lokation og program. Med professionelt anlæg, lys og fuld teknisk opsætning får I en oplevelse, der matcher eventets niveau.',
+      'Jeg spiller under navnet DJ Lindstrøm. Jeg spiller ikke bare musik, jeg skaber stemningen. Fra klubber og gymnasiefester til bryllupper og private events handler det om at læse publikum, ramme den rigtige vibe og holde dansegulvet varmt.',
+      'Du får den rette musik, den bedste energi og en fest, dine gæster ikke har lyst til at gå hjem fra.',
     ],
   },
 
