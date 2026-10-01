@@ -16,8 +16,8 @@ export const content = {
 
   about: {
     title: 'Hej, jeg er Viktor',
-    image: 'img/viktor-pult.webp',
-    imageAlt: 'DJ Lindstrøm bag pulten',
+    image: 'img/viktor-bar.webp',
+    imageAlt: 'Viktor – DJ Lindstrøm – bag pulten',
     paragraphs: [
       'Jeg spiller under navnet DJ Lindstrøm, og jeg elsker at læse et dansegulv og finde præcis det nummer, der får alle op at stå.',
       'Uanset om det er en 18 års fødselsdag, et bryllup eller en firmafest, aftaler vi musikken på forhånd, så den passer til jer og jeres gæster – fra de nyeste hits til klassikerne alle kan synge med på.',
