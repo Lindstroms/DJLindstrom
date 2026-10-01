@@ -108,20 +108,23 @@ export default function Home() {
 
       {/* Hero */}
       <section className="relative isolate flex min-h-[88svh] items-center overflow-hidden">
-        <img
-          src={import.meta.env.BASE_URL + content.hero.image}
-          alt=""
-          fetchPriority="high"
-          className="hero-bg absolute inset-0 -z-30 size-full object-cover object-[70%_center]"
-        />
+        {/* Mobil: fuld baggrund. Desktop: billedet i højre side, tonet ind i det mørke */}
+        <div className="hero-photo absolute inset-0 -z-30 overflow-hidden md:left-auto md:w-[52%]">
+          <img
+            src={import.meta.env.BASE_URL + content.hero.image}
+            alt={content.hero.imageAlt}
+            fetchPriority="high"
+            className="hero-bg size-full object-cover object-[50%_25%]"
+          />
+        </div>
         {/* Mørk overgang så teksten kan læses */}
-        <div className="absolute inset-0 -z-20 bg-gradient-to-r from-[#0b0b12] via-[#0b0b12]/75 to-[#0b0b12]/20" />
-        <div className="absolute inset-0 -z-20 bg-gradient-to-t from-[#0b0b12] via-transparent to-[#0b0b12]/40" />
+        <div className="absolute inset-0 -z-20 bg-gradient-to-t from-[#0b0b12] via-[#0b0b12]/85 to-[#0b0b12]/55 md:hidden" />
+        <div className="absolute inset-0 -z-20 hidden bg-gradient-to-t from-[#0b0b12] via-transparent to-transparent md:block" />
         <div className="blob blob-a" />
 
         <div className="mx-auto w-full max-w-6xl px-4 pb-28 pt-12">
           <p className="hero-in mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-accent">{content.hero.kicker}</p>
-          <h1 className="hero-in font-display text-[clamp(2.8rem,11vw,7.5rem)] font-black leading-[0.9] tracking-tight [animation-delay:.1s]">
+          <h1 className="hero-in font-display text-[clamp(2.8rem,9.5vw,6.5rem)] font-black leading-[0.9] tracking-tight [animation-delay:.1s]">
             DJ
             <br />
             <span className="text-gradient">LINDSTRØM</span>

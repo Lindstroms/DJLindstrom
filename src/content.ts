@@ -10,7 +10,8 @@ export const content = {
   hero: {
     kicker: 'DJ til fest, bryllup & firmaevent',
     tagline: 'Fyld dansegulvet – fra første skål til sidste sang.',
-    image: 'img/hero.webp', // baggrund i toppen (i /public)
+    image: 'img/hero-viktor.webp', // billede i toppen (i /public)
+    imageAlt: 'DJ Lindstrøm bag pulten til en havefest',
   },
 
   about: {

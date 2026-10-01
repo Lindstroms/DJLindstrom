@@ -150,6 +150,14 @@
   }
 }
 
+/* Desktop: hero-billedet toner ind fra venstre (mørk baggrund) */
+@media (min-width: 768px) {
+  .hero-photo {
+    mask-image: linear-gradient(to right, transparent 0%, #000 35%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 35%);
+  }
+}
+
 /* Langsom zoom på hero-billedet */
 .hero-bg {
   animation: kenburns 24s ease-in-out infinite alternate;
