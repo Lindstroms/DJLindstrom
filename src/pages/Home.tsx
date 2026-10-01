@@ -57,6 +57,58 @@ function Vinyl({ className = '' }: { className?: string }) {
   )
 }
 
+function InAction() {
+  const a = content.inAction
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const [muted, setMuted] = useState(true)
+  const base = import.meta.env.BASE_URL
+
+  // Afspil kun når videoen er synlig (sparer data og batteri)
+  useEffect(() => {
+    const v = videoRef.current
+    if (!v) return
+    const io = new IntersectionObserver(([e]) => (e.isIntersecting ? v.play().catch(() => {}) : v.pause()), { threshold: 0.3 })
+    io.observe(v)
+    return () => io.disconnect()
+  }, [])
+
+  return (
+    <section className="mx-auto max-w-6xl px-4 py-20">
+      <div className="reveal mb-10 text-center">
+        <h2 className="section-title">{a.title}</h2>
+        <p className="mx-auto mt-3 max-w-xl text-zinc-400">{a.text}</p>
+      </div>
+      <div className="mx-auto grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="reveal relative aspect-[9/16] overflow-hidden rounded-[2rem] border border-white/10 bg-zinc-900 sm:aspect-[3/4]">
+          <video
+            ref={videoRef}
+            poster={base + a.poster}
+            muted={muted}
+            loop
+            playsInline
+            preload="metadata"
+            className="size-full object-cover object-[50%_15%]"
+            aria-label="Video af DJ Lindstrøm bag pulten"
+          >
+            <source src={base + a.videoWebm} type="video/webm" />
+            <source src={base + a.video} type="video/mp4" />
+          </video>
+          <button
+            onClick={() => setMuted(!muted)}
+            className="absolute bottom-4 right-4 grid size-11 cursor-pointer place-items-center rounded-full bg-black/60 text-lg backdrop-blur transition hover:bg-black/80"
+            aria-label={muted ? 'Slå lyd til' : 'Slå lyd fra'}
+          >
+            {muted ? '🔇' : '🔊'}
+          </button>
+        </div>
+        <div className="reveal relative aspect-[3/4] overflow-hidden rounded-[2rem] border border-white/10 [transition-delay:80ms]">
+          <img src={base + a.photo} alt={a.photoAlt} loading="lazy" className="size-full object-cover" />
+        </div>
+      </div>
+    </section>
+  )
+}
+
 export default function Home() {
   const [catalog, setCatalog] = useState<Catalog | null>(null)
   const [loadError, setLoadError] = useState('')
@@ -200,6 +252,9 @@ export default function Home() {
           </div>
         ))}
       </section>
+
+      {/* I aktion: video + foto */}
+      <InAction />
 
       {/* Event-typer */}
       <section id="events" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-20">

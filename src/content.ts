@@ -30,6 +30,16 @@ export const content = {
     { icon: '⚡', title: 'Hurtigt svar', text: 'Du får et uforpligtende tilbud inden for 24 timer.' },
   ],
 
+  inAction: {
+    title: 'Se mig i aktion',
+    text: 'Fra havefest til firmaevent – jeg medbringer anlæg, der passer til rummet, og sørger for at lyden sidder lige i skabet.',
+    video: 'img/viktor-live.mp4',
+    videoWebm: 'img/viktor-live.webm',
+    poster: 'img/viktor-live-poster.webp',
+    photo: 'img/viktor-firmaevent.webp',
+    photoAlt: 'DJ Lindstrøm med fuldt lydanlæg til et firmaevent',
+  },
+
   steps: [
     { title: 'Send en forespørgsel', text: 'Vælg event, dato og hvad du har brug for. Det tager 2 minutter.' },
     { title: 'Få et tilbud', text: 'Jeg vender tilbage med et tilbud inden for 24 timer.' },
