@@ -57,4 +57,6 @@ npm run dev
 - [x] Musikønsker: kunden får link ved bekræftelse, søger sange (iTunes/Deezer), vælger genrer/energi; vises i admin
 - [x] Live-ønsker: QR-kode til gæster, ønsk/stem på sange, DJ-kø i admin (#/admin/live/:id)
 - [x] Anmeldelser: automatisk mail dagen efter festen (pg_cron kl. 10:05 UTC), kunden anmelder via #/anmeld/:token, Viktor godkender under Admin → Anmeldelser, vises på forsiden
+- [x] Økonomi (Admin → Økonomi): tilbud → online accept → faktura med PDF på mail, kreditnotaer, fortløbende numre,
+      moms 25 %, MobilePay/bank, automatiske rykkere (pg_cron kl. 08:15 UTC), overblik, moms pr. kvartal og CSV-eksport
 - [x] Abonnent-kalender (ICS-feed) til iPhone – Admin → Opsætning → Kalender

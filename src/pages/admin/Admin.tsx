@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import type { Session } from '@supabase/supabase-js'
 import { format, parseISO, startOfToday } from 'date-fns'
 import { da } from 'date-fns/locale'
@@ -10,6 +10,8 @@ import { STATUS_LABELS, type Booking, type BookingStatus } from '../../lib/types
 import Login from './Login'
 import Setup from './Setup'
 import Reviews from './Reviews'
+import Finance from './Finance'
+import { DOC_TITLES, STATUS_LABEL, createFromBooking, kr, type Doc } from '../../lib/finance'
 import { ENERGY_LABELS, WISH_LABELS, spotifySearchUrl, type WishKind } from '../../lib/music'
 
 const STATUS_COLORS: Record<BookingStatus, string> = {
@@ -43,34 +45,36 @@ export default function Admin() {
 }
 
 function AdminShell() {
-  const [tab, setTab] = useState<'bookings' | 'reviews' | 'setup'>('bookings')
+  const location = useLocation()
+  const [tab, setTab] = useState<'bookings' | 'finance' | 'reviews' | 'setup'>(
+    (location.state as { tab?: 'finance' } | null)?.tab ?? 'bookings',
+  )
   return (
     <div>
-      <div className="mb-6 flex items-center gap-1 rounded-full border border-zinc-800 bg-zinc-900/70 p-1">
+      {supabase && (
+        <div className="-mt-4 mb-2 flex justify-end">
+          <button className="cursor-pointer text-xs text-zinc-500 hover:text-zinc-200" onClick={() => supabase!.auth.signOut()}>
+            Log ud
+          </button>
+        </div>
+      )}
+      <div className="mb-6 grid grid-cols-4 gap-1 rounded-full border border-zinc-800 bg-zinc-900/70 p-1">
         {(
           [
             ['bookings', 'Bookinger'],
-            ['reviews', 'Anmeldelser'],
+            ['finance', 'Økonomi'],
+            ['reviews', 'Anmeld.'],
             ['setup', 'Opsætning'],
           ] as const
         ).map(([k, label]) => (
           <button
             key={k}
             onClick={() => setTab(k)}
-            className={`flex-1 cursor-pointer rounded-full px-2 py-2 text-xs font-semibold sm:px-4 sm:text-sm ${tab === k ? 'bg-accent text-black' : 'text-zinc-300'}`}
+            className={`min-w-0 cursor-pointer truncate rounded-full px-1 py-2 text-[11px] font-semibold sm:px-4 sm:text-sm ${tab === k ? 'bg-accent text-black' : 'text-zinc-300'}`}
           >
             {label}
           </button>
         ))}
-        {supabase && (
-          <button
-            className="cursor-pointer px-2 text-xs text-zinc-400 hover:text-zinc-100 sm:px-3 sm:text-sm"
-            onClick={() => supabase!.auth.signOut()}
-            title="Log ud"
-          >
-            Log ud
-          </button>
-        )}
       </div>
       {tab === 'bookings' ? (
         <Dashboard />
@@ -78,6 +82,8 @@ function AdminShell() {
         <p className="text-zinc-400">Kræver forbindelse til databasen.</p>
       ) : tab === 'reviews' ? (
         <Reviews />
+      ) : tab === 'finance' ? (
+        <Finance />
       ) : (
         <Setup />
       )}
@@ -236,6 +242,8 @@ function Dashboard() {
                     </label>
                   </div>
 
+                  <BookingFinance b={b} />
+
                   <MusicSummary b={b} />
 
                   <div className="flex flex-wrap gap-2">
@@ -342,6 +350,61 @@ function MusicSummary({ b }: { b: Booking }) {
           </div>
         )
       })}
+    </div>
+  )
+}
+
+// Tilbud og fakturaer knyttet til en booking
+function BookingFinance({ b }: { b: Booking }) {
+  const navigate = useNavigate()
+  const [docs, setDocs] = useState<Doc[] | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!supabase) return setDocs([])
+    supabase
+      .from('docs')
+      .select('*')
+      .eq('booking_id', b.id)
+      .order('created_at')
+      .then(({ data }) => setDocs((data as Doc[]) ?? []))
+  }, [b.id])
+
+  const create = async (type: 'tilbud' | 'faktura') => {
+    setBusy(true)
+    setError('')
+    try {
+      const { data: types } = await supabase!.from('event_types').select('id, price')
+      const prices = Object.fromEntries((types ?? []).map((t: { id: string; price: number | null }) => [t.id, t.price]))
+      navigate(`/admin/dok/${await createFromBooking(b, type, prices)}`)
+    } catch (e) {
+      setError((e as Error).message)
+      setBusy(false)
+    }
+  }
+
+  if (isDemo) return null
+  return (
+    <div className="grid gap-2 rounded-xl border border-zinc-800 p-3">
+      <h3 className="font-semibold">💼 Tilbud & faktura</h3>
+      {docs?.map((d) => (
+        <button key={d.id} className="flex items-center justify-between gap-2 text-left hover:text-accent" onClick={() => navigate(`/admin/dok/${d.id}`)}>
+          <span>
+            {DOC_TITLES[d.type]} {d.number ? `nr. ${d.number}` : '(kladde)'} · {kr(d.total)}
+          </span>
+          <span className="text-xs text-zinc-400">{STATUS_LABEL[d.status]} →</span>
+        </button>
+      ))}
+      {error && <p className="text-xs text-red-400">{error}</p>}
+      <div className="flex flex-wrap gap-2">
+        <button className="btn-ghost !px-4 !py-1.5 text-sm" disabled={busy} onClick={() => create('tilbud')}>
+          + Tilbud
+        </button>
+        <button className="btn-ghost !px-4 !py-1.5 text-sm" disabled={busy} onClick={() => create('faktura')}>
+          + Faktura
+        </button>
+      </div>
     </div>
   )
 }

@@ -315,3 +315,24 @@
     transition: none;
   }
 }
+
+/* Print af tilbud/fakturaer: kun selve dokumentet på hvid baggrund */
+@media print {
+  html,
+  body {
+    background: #fff !important;
+    color-scheme: light;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .doc-page {
+    max-width: none;
+    padding: 0;
+  }
+  .paper {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+  }
+}

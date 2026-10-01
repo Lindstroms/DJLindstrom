@@ -8,6 +8,8 @@ import Admin from './pages/admin/Admin'
 import MusicWishes from './pages/MusicWishes'
 import LiveGuest from './pages/LiveGuest'
 import Review from './pages/Review'
+import DocView from './pages/DocView'
+import DocEditorPage from './pages/admin/DocEditor'
 import LiveDj from './pages/admin/LiveDj'
 
 // Enkel ramme til takkeside og admin
@@ -35,6 +37,8 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/musik/:token" element={<Page><MusicWishes /></Page>} />
         <Route path="/live/:token" element={<Page><LiveGuest /></Page>} />
         <Route path="/anmeld/:token" element={<Page><Review /></Page>} />
+        <Route path="/dok/:token" element={<DocView />} />
+        <Route path="/admin/dok/:id" element={<Page><DocEditorPage /></Page>} />
         <Route path="/admin/live/:id" element={<Page><LiveDj /></Page>} />
       </Routes>
     </HashRouter>
