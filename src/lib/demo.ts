@@ -50,6 +50,8 @@ export const demoBookings: Booking[] = [
     event_themes: null,
     booking_packages: [{ sound_packages: { name: 'Stort lydanlæg' } }, { sound_packages: { name: 'Lys' } }],
     wishlist_token: 'demo',
+    event_plan: {},
+    plan_updated_at: null,
     music_genres: ['Pop', 'Danske hits'],
     music_energy: 4,
     music_notes: 'Mange ældre gæster til middagen',

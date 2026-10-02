@@ -68,6 +68,8 @@ export type Booking = Omit<BookingRequest, 'package_ids'> & {
   music_energy: number | null
   music_notes: string | null
   song_wishes: import('./music').Wish[]
+  event_plan: import('./portal').EventPlan
+  plan_updated_at: string | null
 }
 
 export type Catalog = {

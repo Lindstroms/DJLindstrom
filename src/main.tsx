@@ -8,6 +8,7 @@ import Admin from './pages/admin/Admin'
 import MusicWishes from './pages/MusicWishes'
 import LiveGuest from './pages/LiveGuest'
 import Review from './pages/Review'
+import CustomerPortal from './pages/CustomerPortal'
 import DocView from './pages/DocView'
 import DocEditorPage from './pages/admin/DocEditor'
 import LiveDj from './pages/admin/LiveDj'
@@ -34,6 +35,7 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/" element={<Home />} />
         <Route path="/tak" element={<Page><Thanks /></Page>} />
         <Route path="/admin" element={<Page><Admin /></Page>} />
+        <Route path="/booking/:token" element={<Page><CustomerPortal /></Page>} />
         <Route path="/musik/:token" element={<Page><MusicWishes /></Page>} />
         <Route path="/live/:token" element={<Page><LiveGuest /></Page>} />
         <Route path="/anmeld/:token" element={<Page><Review /></Page>} />

@@ -61,4 +61,6 @@ npm run dev
       moms 25 %, MobilePay/bank, automatiske rykkere (pg_cron kl. 08:15 UTC), overblik, moms pr. kvartal og CSV-eksport
 - [x] Udgifter (Admin → Økonomi → Udgifter): kvitteringsfoto (privat storage-bucket `receipts`), kategorier, købsmoms,
   resultat og moms at betale pr. kvartal i Overblik, CSV-eksport
+- [x] Kundeside "Min booking" (#/booking/:token): status, tilbud/faktura, tidsplan & praktisk (gemmes i `bookings.event_plan`,
+  Viktor får mail og ser den i admin + kalender), musikønsker, QR til gæsternes sangønsker, anmeldelse
 - [x] Abonnent-kalender (ICS-feed) til iPhone – Admin → Opsætning → Kalender

@@ -54,6 +54,32 @@ const VTIMEZONE = [
   'END:VTIMEZONE',
 ]
 
+type Plan = {
+  contact_name?: string
+  contact_phone?: string
+  setup_from?: string
+  location?: string
+  power?: string
+  access?: string
+  notes?: string
+  program?: { time?: string; label: string; note?: string }[]
+}
+
+// Kundens tidsplan fra bookingsiden
+function planText(p: Plan | null) {
+  if (!p) return ''
+  const info = [
+    p.contact_name || p.contact_phone ? `Kontakt på dagen: ${[p.contact_name, p.contact_phone].filter(Boolean).join(', ')}` : '',
+    p.setup_from ? `Opstilling fra kl. ${p.setup_from}` : '',
+    p.location ? `Placering: ${({ inde: 'indendørs', ude: 'udendørs', begge: 'inde og ude' } as Record<string, string>)[p.location]}` : '',
+    p.power ? `Strøm ved pulten: ${({ ja: 'ja', nej: 'nej', ved_ikke: 'ved ikke' } as Record<string, string>)[p.power]}` : '',
+    p.access ? `Adgang: ${p.access}` : '',
+    p.notes ? `Andet: ${p.notes}` : '',
+  ].filter(Boolean)
+  const program = (p.program ?? []).map((x) => `${x.time ?? '--:--'} ${x.label}${x.note ? ` (${x.note})` : ''}`)
+  return [info.length ? '\n' + info.join('\n') : '', program.length ? '\nPROGRAM\n' + program.join('\n') : ''].filter(Boolean).join('\n')
+}
+
 Deno.serve(async (req) => {
   const token = new URL(req.url).searchParams.get('token') ?? ''
 
@@ -91,6 +117,7 @@ Deno.serve(async (req) => {
       b.quoted_price != null ? `Pris: ${Number(b.quoted_price).toLocaleString('da-DK')} kr.` : '',
       b.message ? `Kundens besked: ${b.message}` : '',
       b.internal_notes ? `Noter: ${b.internal_notes}` : '',
+      planText(b.event_plan),
     ]
       .filter(Boolean)
       .join('\n')

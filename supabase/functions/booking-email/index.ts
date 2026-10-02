@@ -31,6 +31,38 @@ const dateDa = (d: string) =>
 
 const hoursDa = (h: number) => `${Number(h).toLocaleString('da-DK')} timer`
 
+const portalUrl = (token: string) => `${SITE_URL}#/booking/${token}`
+
+const button = (href: string, label: string) =>
+  `<a href="${href}" style="display:inline-block;background:#e040fb;color:#000;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:700">${esc(label)}</a>`
+
+type Plan = {
+  contact_name?: string
+  contact_phone?: string
+  setup_from?: string
+  location?: 'inde' | 'ude' | 'begge'
+  power?: 'ja' | 'nej' | 'ved_ikke'
+  access?: string
+  notes?: string
+  program?: { time?: string; label: string; note?: string }[]
+}
+
+const LOCATION: Record<string, string> = { inde: 'Indendørs', ude: 'Udendørs', begge: 'Både inde og ude' }
+const POWER: Record<string, string> = { ja: 'Ja', nej: 'Nej', ved_ikke: 'Ved ikke' }
+
+// Kundens tidsplan som tabelrækker til mailen
+function planRows(p: Plan): Row[] {
+  return [
+    ['Kontakt på dagen', [p.contact_name, p.contact_phone].filter(Boolean).join(', ')],
+    ['Opstilling fra', p.setup_from ? `kl. ${p.setup_from}` : null],
+    ['Placering', p.location ? LOCATION[p.location] : null],
+    ['Strøm ved pulten', p.power ? POWER[p.power] : null],
+    ['Adgang & parkering', p.access],
+    ['Program', (p.program ?? []).map((x) => `${x.time ?? '--:--'}  ${x.label}${x.note ? ` (${x.note})` : ''}`).join('\n')],
+    ['Andet', p.notes],
+  ]
+}
+
 type Row = [label: string, value: string | null | undefined]
 
 function table(rows: Row[]) {
@@ -76,6 +108,7 @@ Deno.serve(async (req) => {
   if (kind === 'confirmed') return sendConfirmed(id)
   if (kind === 'review_request') return sendReviewRequest(id)
   if (kind === 'review_received') return sendReviewReceived(id)
+  if (kind === 'plan_updated') return sendPlanUpdated(id)
 
   // Markér som sendt atomisk: kun nye, ikke-notificerede forespørgsler fra de sidste 15 minutter.
   // Det gør funktionen sikker at kalde flere gange og ubrugelig til spam.
@@ -112,6 +145,8 @@ Deno.serve(async (req) => {
      <p>Tak for din forespørgsel – vi kontakter dig og sender et tilbud inden for 24 timer.</p>
      <p style="margin-top:20px;font-weight:600">Det har du sendt:</p>
      ${table(details)}
+     <p style="margin-top:20px">På din bookingside kan du følge status, se tilbuddet, når det kommer, og allerede nu skrive tidsplanen for dagen ind.</p>
+     <p>${button(portalUrl(b.wishlist_token), 'Min booking')}</p>
      <p style="margin-top:20px;color:#666;font-size:14px">Har du spørgsmål, så svar blot på denne mail.</p>
      <p>Mvh<br>DJ Lindstrøm</p>`,
   )
@@ -172,8 +207,11 @@ async function sendConfirmed(id: string) {
      ])}
      <p style="margin-top:20px"><b>Fortæl mig om musikken</b><br>
      Vælg stemning og genrer, og søg de sange frem, der <i>skal</i> spilles – og dem der ikke må. Du kan rette i ønskerne helt frem til festen.</p>
-     <p style="margin-top:20px"><a href="${wishUrl}" style="background:#e040fb;color:#000;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:700">Musikønsker 🎵</a></p>
-     <p style="color:#666;font-size:14px">Del gerne linket med din partner eller medarrangør. Har du spørgsmål, så svar blot på denne mail.</p>
+     <p style="margin-top:20px">${button(wishUrl, 'Musikønsker 🎵')}</p>
+     <p style="margin-top:20px"><b>Tidsplan & praktisk</b><br>
+     Skriv programmet for aftenen ind (middag, taler, første dans …), hvem jeg kan ringe til på dagen, og hvordan jeg kommer ind med udstyret. Du finder det hele – også tilbud, faktura og QR-kode til gæsternes sangønsker – på din bookingside.</p>
+     <p style="margin-top:20px">${button(portalUrl(b.wishlist_token), 'Min booking')}</p>
+     <p style="color:#666;font-size:14px">Del gerne linkene med din partner eller medarrangør. Har du spørgsmål, så svar blot på denne mail.</p>
      <p>Mvh<br>DJ Lindstrøm</p>`,
   )
 
@@ -263,6 +301,34 @@ async function sendReviewReceived(reviewId: string) {
   )
   try {
     await send(ADMIN_EMAIL, `Ny anmeldelse ${stars(r.rating)} – ${r.display_name}`, html, r.bookings?.email)
+  } catch (e) {
+    console.error(String(e))
+    return new Response(`Fejl ved afsendelse:\n${e}`, { status: 502 })
+  }
+  return new Response('OK', { status: 200 })
+}
+
+// Besked til Viktor, når kunden har udfyldt/ændret tidsplanen (databasen begrænser til én pr. 30 min)
+async function sendPlanUpdated(id: string) {
+  const { data: b, error } = await db
+    .from('bookings')
+    .select('*, event_types(name)')
+    .eq('id', id)
+    .gte('plan_notified_at', new Date(Date.now() - 15 * 60 * 1000).toISOString())
+    .maybeSingle()
+  if (error) return new Response(error.message, { status: 500 })
+  if (!b) return new Response('Intet at sende', { status: 200 })
+
+  const event = b.event_types?.name ?? 'Event'
+  const html = layout(
+    `Tidsplan opdateret: ${event}`,
+    `<p>${esc(b.customer_name)} har opdateret tidsplanen for ${esc(dateDa(b.event_date))}.</p>
+     ${table(planRows(b.event_plan ?? {}))}
+     <p style="margin-top:24px">${button(ADMIN_URL, 'Åbn i admin')}</p>
+     <p style="color:#666;font-size:14px">Retter kunden mere, står den seneste version altid i admin og i din kalender.</p>`,
+  )
+  try {
+    await send(ADMIN_EMAIL, `Tidsplan opdateret: ${event} ${b.event_date} – ${b.customer_name}`, html, b.email)
   } catch (e) {
     console.error(String(e))
     return new Response(`Fejl ved afsendelse:\n${e}`, { status: 502 })

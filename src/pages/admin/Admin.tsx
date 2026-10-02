@@ -12,6 +12,8 @@ import Setup from './Setup'
 import Reviews from './Reviews'
 import Finance from './Finance'
 import { DOC_TITLES, STATUS_LABEL, createFromBooking, kr, listPackages, type Doc } from '../../lib/finance'
+import { planIsEmpty, portalUrl } from '../../lib/portal'
+import { PlanView } from '../CustomerPortal'
 import { ENERGY_LABELS, WISH_LABELS, spotifySearchUrl, type WishKind } from '../../lib/music'
 
 const STATUS_COLORS: Record<BookingStatus, string> = {
@@ -244,6 +246,8 @@ function Dashboard() {
 
                   <BookingFinance b={b} />
 
+                  <PlanSummary b={b} />
+
                   <MusicSummary b={b} />
 
                   <div className="flex flex-wrap gap-2">
@@ -262,6 +266,43 @@ function Dashboard() {
           )
         })}
       </ul>
+    </div>
+  )
+}
+
+// Kundesiden og kundens tidsplan for en booking
+function PlanSummary({ b }: { b: Booking }) {
+  const [copied, setCopied] = useState(false)
+  const url = portalUrl(b.wishlist_token)
+  const copy = async () => {
+    await navigator.clipboard.writeText(url)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div className="grid gap-3 rounded-xl border border-zinc-800 p-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className="font-semibold">🗓️ Tidsplan & praktisk</h3>
+        <span className="flex gap-3 text-xs">
+          <a className="text-accent hover:underline" href={url} target="_blank" rel="noreferrer">
+            Se kundesiden
+          </a>
+          <button className="text-accent hover:underline" onClick={copy}>
+            {copied ? 'Link kopieret ✓' : 'Kopiér link'}
+          </button>
+        </span>
+      </div>
+      {planIsEmpty(b.event_plan) ? (
+        <p className="text-zinc-500">Kunden har ikke udfyldt tidsplanen endnu. Linket til kundesiden står i deres mails.</p>
+      ) : (
+        <>
+          <PlanView plan={b.event_plan} compact />
+          {b.plan_updated_at && (
+            <p className="text-xs text-zinc-500">Opdateret {format(parseISO(b.plan_updated_at), "d. MMM 'kl.' HH:mm", { locale: da })}</p>
+          )}
+        </>
+      )}
     </div>
   )
 }

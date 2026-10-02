@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { format, parseISO } from 'date-fns'
 import { da } from 'date-fns/locale'
 import {
@@ -113,6 +113,9 @@ export default function MusicWishes() {
 
   return (
     <div className="grid grid-cols-1 gap-6">
+      <Link to={`/booking/${token}`} className="w-fit text-sm text-zinc-400 hover:text-white">
+        ← Min booking
+      </Link>
       <header>
         <p className="text-sm font-semibold uppercase tracking-[0.25em] text-accent">Musikønsker</p>
         <h1 className="mt-2 font-display text-2xl font-black sm:text-3xl">Hej {list.first_name} 👋</h1>
