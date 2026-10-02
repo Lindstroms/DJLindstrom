@@ -17,6 +17,8 @@ import {
   type DocType,
   type FinanceSettings,
 } from '../../lib/finance'
+import { exportExpensesCsv, listExpenses, type Expense } from '../../lib/expenses'
+import Expenses from './Expenses'
 
 const STATUS_COLOR: Record<DocStatus, string> = {
   kladde: 'bg-zinc-800 text-zinc-300',
@@ -28,14 +30,21 @@ const STATUS_COLOR: Record<DocStatus, string> = {
 }
 
 export default function Finance() {
-  const [view, setView] = useState<'overview' | 'docs' | 'settings'>('overview')
+  const [view, setView] = useState<'overview' | 'docs' | 'expenses' | 'settings'>('overview')
   const [docs, setDocs] = useState<Doc[] | null>(null)
+  const [expenses, setExpenses] = useState<Expense[] | null>(null)
+  const [vatRegistered, setVatRegistered] = useState(true)
   const [error, setError] = useState('')
 
   const load = useCallback(() => listDocs().then(setDocs).catch((e: Error) => setError(e.message)), [])
+  const loadExpenses = useCallback(() => listExpenses().then(setExpenses).catch((e: Error) => setError(e.message)), [])
   useEffect(() => {
     load()
-  }, [load])
+    loadExpenses()
+    getFinanceSettings()
+      .then((s) => setVatRegistered(s.vat_registered))
+      .catch(() => {})
+  }, [load, loadExpenses])
 
   return (
     <div className="grid grid-cols-1 gap-4">
@@ -44,6 +53,7 @@ export default function Finance() {
           [
             ['overview', 'Overblik'],
             ['docs', 'Tilbud & fakturaer'],
+            ['expenses', 'Udgifter'],
             ['settings', 'Indstillinger'],
           ] as const
         ).map(([k, label]) => (
@@ -55,10 +65,12 @@ export default function Finance() {
       {error && <p className="rounded-lg bg-red-950 p-3 text-sm text-red-300">{error}</p>}
       {view === 'settings' ? (
         <Settings />
-      ) : !docs ? (
+      ) : !docs || !expenses ? (
         <p className="text-zinc-400">Indlæser …</p>
       ) : view === 'overview' ? (
-        <Overview docs={docs} onOpenDocs={() => setView('docs')} />
+        <Overview docs={docs} expenses={expenses} onOpenDocs={() => setView('docs')} onOpenExpenses={() => setView('expenses')} />
+      ) : view === 'expenses' ? (
+        <Expenses expenses={expenses} vatRegistered={vatRegistered} onChanged={loadExpenses} />
       ) : (
         <DocList docs={docs} />
       )}
@@ -68,12 +80,23 @@ export default function Finance() {
 
 // ---------------- Overblik ----------------
 
-function Overview({ docs, onOpenDocs }: { docs: Doc[]; onOpenDocs: () => void }) {
+function Overview({
+  docs,
+  expenses,
+  onOpenDocs,
+  onOpenExpenses,
+}: {
+  docs: Doc[]
+  expenses: Expense[]
+  onOpenDocs: () => void
+  onOpenExpenses: () => void
+}) {
   const years = useMemo(() => {
     const ys = new Set(docs.filter((d) => d.issue_date).map((d) => Number(d.issue_date!.slice(0, 4))))
+    expenses.forEach((e) => ys.add(Number(e.expense_date.slice(0, 4))))
     ys.add(new Date().getFullYear())
     return [...ys].sort((a, b) => b - a)
-  }, [docs])
+  }, [docs, expenses])
   const [year, setYear] = useState(years[0])
   const navigate = useNavigate()
 
@@ -81,6 +104,9 @@ function Overview({ docs, onOpenDocs }: { docs: Doc[]; onOpenDocs: () => void })
   const invoices = issued.filter((d) => d.type === 'faktura')
   const credits = issued.filter((d) => d.type === 'kreditnota')
   const revenue = invoices.reduce((s, d) => s + d.subtotal, 0) - credits.reduce((s, d) => s + d.subtotal, 0)
+  const spent = expenses.filter((e) => e.expense_date.startsWith(String(year)))
+  const costs = spent.reduce((s, e) => s + Number(e.amount) - Number(e.vat), 0)
+  const result = revenue - costs
 
   // Udestående gælder alle år
   const open = docs.filter((d) => d.type === 'faktura' && d.status === 'sendt')
@@ -94,15 +120,21 @@ function Overview({ docs, onOpenDocs }: { docs: Doc[]; onOpenDocs: () => void })
     const inQ = (d: Doc) => Math.floor((Number(d.issue_date!.slice(5, 7)) - 1) / 3) + 1 === q
     const sales = invoices.filter(inQ).reduce((s, d) => s + d.subtotal, 0) - credits.filter(inQ).reduce((s, d) => s + d.subtotal, 0)
     const vat = invoices.filter(inQ).reduce((s, d) => s + d.vat, 0) - credits.filter(inQ).reduce((s, d) => s + d.vat, 0)
-    return { q, sales, vat }
+    const buyVat = spent
+      .filter((e) => Math.floor((Number(e.expense_date.slice(5, 7)) - 1) / 3) + 1 === q)
+      .reduce((s, e) => s + Number(e.vat), 0)
+    return { q, sales, vat, buyVat }
   })
 
   // Omsætning pr. måned (simpel søjlegraf)
   const months = Array.from({ length: 12 }, (_, m) => {
     const inM = (d: Doc) => Number(d.issue_date!.slice(5, 7)) === m + 1
-    return invoices.filter(inM).reduce((s, d) => s + d.subtotal, 0) - credits.filter(inM).reduce((s, d) => s + d.subtotal, 0)
+    return {
+      income: invoices.filter(inM).reduce((s, d) => s + d.subtotal, 0) - credits.filter(inM).reduce((s, d) => s + d.subtotal, 0),
+      cost: spent.filter((e) => Number(e.expense_date.slice(5, 7)) === m + 1).reduce((s, e) => s + Number(e.amount) - Number(e.vat), 0),
+    }
   })
-  const max = Math.max(1, ...months)
+  const max = Math.max(1, ...months.map((m) => Math.max(m.income, m.cost)))
 
   return (
     <div className="grid grid-cols-1 gap-4">
@@ -117,13 +149,22 @@ function Overview({ docs, onOpenDocs }: { docs: Doc[]; onOpenDocs: () => void })
             <option key={y}>{y}</option>
           ))}
         </select>
-        <button className="btn-ghost text-sm" onClick={() => exportCsv(docs, year)}>
+        <button
+          className="btn-ghost text-sm"
+          onClick={() => {
+            exportCsv(docs, year)
+            // Browsere kan blokere to downloads på én gang – lille pause imellem
+            setTimeout(() => exportExpensesCsv(expenses, year), 400)
+          }}
+        >
           ⬇ Eksportér {year} (CSV)
         </button>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <Kpi label={`Omsætning ${year}`} value={kr(revenue)} hint="ekskl. moms" />
+        <Kpi label={`Udgifter ${year}`} value={kr(costs)} hint={`${spent.length} bilag, ekskl. moms`} />
+        <Kpi label={`Resultat ${year}`} value={kr(result)} hint="omsætning − udgifter" alert={result < 0} />
         <Kpi label="Udestående" value={kr(open.reduce((s, d) => s + d.total, 0))} hint={`${open.length} faktura${open.length === 1 ? '' : 'er'}`} />
         <Kpi
           label="Forfaldent"
@@ -150,15 +191,31 @@ function Overview({ docs, onOpenDocs }: { docs: Doc[]; onOpenDocs: () => void })
       )}
 
       <div className="card">
-        <h3 className="mb-3 font-semibold">Omsætning pr. måned ({year}, ekskl. moms)</h3>
-        <div className="flex h-36 items-end gap-1.5" role="img" aria-label="Omsætning pr. måned">
+        <h3 className="font-semibold">Pr. måned ({year}, ekskl. moms)</h3>
+        <p className="mb-3 flex gap-4 text-xs text-zinc-400">
+          <span>
+            <span className="mr-1 inline-block size-2.5 rounded-sm bg-accent/80" />
+            Omsætning
+          </span>
+          <span>
+            <span className="mr-1 inline-block size-2.5 rounded-sm bg-zinc-500" />
+            Udgifter
+          </span>
+        </p>
+        <div className="flex h-36 items-end gap-1.5" role="img" aria-label="Omsætning og udgifter pr. måned">
           {months.map((v, i) => (
-            <div key={i} className="flex h-full flex-1 flex-col items-center gap-1">
-              <div className="flex w-full flex-1 items-end">
+            <div key={i} className="flex h-full min-w-0 flex-1 flex-col items-center gap-1">
+              <div
+                className="flex w-full flex-1 items-end gap-px"
+                title={`${format(new Date(year, i, 1), 'MMMM', { locale: da })}: omsætning ${kr(v.income)}, udgifter ${kr(v.cost)}`}
+              >
                 <div
-                  className="w-full rounded-t bg-accent/80"
-                  style={{ height: `${(Math.max(0, v) / max) * 100}%`, minHeight: v > 0 ? 3 : 0 }}
-                  title={`${format(new Date(year, i, 1), 'MMMM', { locale: da })}: ${kr(v)}`}
+                  className="flex-1 rounded-t bg-accent/80"
+                  style={{ height: `${(Math.max(0, v.income) / max) * 100}%`, minHeight: v.income > 0 ? 3 : 0 }}
+                />
+                <div
+                  className="flex-1 rounded-t bg-zinc-500"
+                  style={{ height: `${(v.cost / max) * 100}%`, minHeight: v.cost > 0 ? 3 : 0 }}
                 />
               </div>
               <span className="text-[10px] text-zinc-500">{format(new Date(year, i, 1), 'MMM', { locale: da }).slice(0, 3)}</span>
@@ -169,41 +226,51 @@ function Overview({ docs, onOpenDocs }: { docs: Doc[]; onOpenDocs: () => void })
 
       <div className="card">
         <h3 className="mb-2 font-semibold">Moms pr. kvartal ({year})</h3>
-        <table className="w-full text-sm">
+        <table className="w-full text-xs sm:text-sm">
           <thead className="text-left text-zinc-500">
             <tr>
               <th className="py-1 font-normal">Kvartal</th>
-              <th className="py-1 text-right font-normal">Salg ekskl. moms</th>
+              <th className="hidden py-1 text-right font-normal sm:table-cell">Salg ekskl. moms</th>
               <th className="py-1 text-right font-normal">Salgsmoms</th>
+              <th className="py-1 text-right font-normal">Købsmoms</th>
+              <th className="py-1 text-right font-normal">At betale</th>
             </tr>
           </thead>
           <tbody>
-            {quarters.map(({ q, sales, vat }) => (
-              <tr key={q} className="border-t border-zinc-800">
-                <td className="py-1.5">{q}. kvartal</td>
-                <td className="py-1.5 text-right">{kr(sales)}</td>
+            {[...quarters, { q: 0, ...sumQuarters(quarters) }].map(({ q, sales, vat, buyVat }) => (
+              <tr key={q} className={`border-t ${q ? 'border-zinc-800' : 'border-zinc-700 font-semibold'}`}>
+                <td className="py-1.5">{q ? `${q}. kvt.` : 'Året'}</td>
+                <td className="hidden py-1.5 text-right sm:table-cell">{kr(sales)}</td>
                 <td className="py-1.5 text-right">{kr(vat)}</td>
+                <td className="py-1.5 text-right">{kr(buyVat)}</td>
+                <td className={`py-1.5 text-right ${vat - buyVat < 0 ? 'text-emerald-400' : ''}`}>{kr(vat - buyVat)}</td>
               </tr>
             ))}
-            <tr className="border-t border-zinc-700 font-semibold">
-              <td className="py-1.5">Hele året</td>
-              <td className="py-1.5 text-right">{kr(quarters.reduce((s, q) => s + q.sales, 0))}</td>
-              <td className="py-1.5 text-right">{kr(quarters.reduce((s, q) => s + q.vat, 0))}</td>
-            </tr>
           </tbody>
         </table>
         <p className="mt-2 text-xs text-zinc-500">
-          Salgsmoms ud fra udstedte fakturaer minus kreditnotaer. Købsmoms (udgifter) er ikke med endnu. Tjek altid momsangivelsen
-          i TastSelv.
+          Salgsmoms fra udstedte fakturaer minus kreditnotaer; købsmoms fra registrerede udgifter. Negativt beløb = penge tilbage.
+          Tjek altid momsangivelsen i TastSelv.
         </p>
       </div>
 
-      <button className="btn-ghost" onClick={onOpenDocs}>
-        Se alle tilbud & fakturaer →
-      </button>
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <button className="btn-ghost" onClick={onOpenDocs}>
+          Se alle tilbud & fakturaer →
+        </button>
+        <button className="btn-ghost" onClick={onOpenExpenses}>
+          Se alle udgifter →
+        </button>
+      </div>
     </div>
   )
 }
+
+const sumQuarters = (qs: { sales: number; vat: number; buyVat: number }[]) => ({
+  sales: qs.reduce((s, q) => s + q.sales, 0),
+  vat: qs.reduce((s, q) => s + q.vat, 0),
+  buyVat: qs.reduce((s, q) => s + q.buyVat, 0),
+})
 
 function Kpi({ label, value, hint, alert }: { label: string; value: string; hint?: string; alert?: boolean }) {
   return (
