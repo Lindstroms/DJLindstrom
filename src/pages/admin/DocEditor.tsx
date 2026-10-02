@@ -16,10 +16,13 @@ import {
   getFinanceSettings,
   isOverdue,
   kr,
+  listPackages,
+  packageLine,
   saveDraft,
   sendDoc,
   setPaid,
   setQuoteStatus,
+  type CatalogPackage,
   type Doc,
   type DocLine,
   type FinanceSettings,
@@ -62,6 +65,7 @@ function DocEditor() {
   const [doc, setDoc] = useState<Doc | null>(null)
   const [lines, setLines] = useState<DocLine[]>([])
   const [settings, setSettings] = useState<FinanceSettings | null>(null)
+  const [packages, setPackages] = useState<CatalogPackage[]>([])
   const [error, setError] = useState('')
   const [busy, setBusy] = useState('')
   const [saved, setSaved] = useState(false)
@@ -69,10 +73,11 @@ function DocEditor() {
 
   const load = useCallback(async () => {
     try {
-      const [{ doc, lines }, s] = await Promise.all([getDoc(id), getFinanceSettings()])
+      const [{ doc, lines }, s, pk] = await Promise.all([getDoc(id), getFinanceSettings(), listPackages()])
       setDoc(doc)
       setLines(lines)
       setSettings(s)
+      setPackages(pk)
     } catch (e) {
       setError((e as Error).message)
     }
@@ -247,12 +252,35 @@ function DocEditor() {
           </div>
         ))}
         {draft && (
-          <button
-            className="btn-ghost text-sm"
-            onClick={() => setLines([...lines, { sort: lines.length, description: '', quantity: 1, unit: 'stk.', unit_price: 0 }])}
-          >
-            + Tilføj linje
-          </button>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <select
+              className="cursor-pointer rounded-full border border-zinc-700 bg-zinc-950 px-4 py-2.5 text-sm font-semibold"
+              value=""
+              onChange={(e) => {
+                const p = packages.find((x) => x.id === e.target.value)
+                if (p) {
+                  setLines([...lines, { ...packageLine(p), sort: lines.length }])
+                  setSaved(false)
+                }
+              }}
+              aria-label="Tilføj lyd og lys"
+            >
+              <option value="">+ Tilføj lyd & lys …</option>
+              {packages.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                  {p.price != null ? ` – ${kr(Number(p.price))}` : ' – (ingen pris)'}
+                  {p.active ? '' : ' (skjult)'}
+                </option>
+              ))}
+            </select>
+            <button
+              className="btn-ghost text-sm"
+              onClick={() => setLines([...lines, { sort: lines.length, description: '', quantity: 1, unit: 'stk.', unit_price: 0 }])}
+            >
+              + Tilføj tom linje
+            </button>
+          </div>
         )}
         <dl className="ml-auto grid w-full max-w-xs grid-cols-[1fr_auto] gap-x-4 gap-y-1 text-sm">
           <dt className="text-zinc-400">Subtotal ekskl. moms</dt>

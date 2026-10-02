@@ -11,7 +11,7 @@ import Login from './Login'
 import Setup from './Setup'
 import Reviews from './Reviews'
 import Finance from './Finance'
-import { DOC_TITLES, STATUS_LABEL, createFromBooking, kr, type Doc } from '../../lib/finance'
+import { DOC_TITLES, STATUS_LABEL, createFromBooking, kr, listPackages, type Doc } from '../../lib/finance'
 import { ENERGY_LABELS, WISH_LABELS, spotifySearchUrl, type WishKind } from '../../lib/music'
 
 const STATUS_COLORS: Record<BookingStatus, string> = {
@@ -375,9 +375,9 @@ function BookingFinance({ b }: { b: Booking }) {
     setBusy(true)
     setError('')
     try {
-      const { data: types } = await supabase!.from('event_types').select('id, price')
+      const [{ data: types }, packages] = await Promise.all([supabase!.from('event_types').select('id, price'), listPackages()])
       const prices = Object.fromEntries((types ?? []).map((t: { id: string; price: number | null }) => [t.id, t.price]))
-      navigate(`/admin/dok/${await createFromBooking(b, type, prices)}`)
+      navigate(`/admin/dok/${await createFromBooking(b, type, prices, packages)}`)
     } catch (e) {
       setError((e as Error).message)
       setBusy(false)

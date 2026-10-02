@@ -167,10 +167,29 @@ async function createDoc(doc: Partial<Doc> & { type: DocType }, lines: Omit<DocL
   return created.id
 }
 
-const exVat = (incl: number) => Math.round((incl / (1 + VAT)) * 10000) / 10000
+export const exVat = (incl: number) => Math.round((incl / (1 + VAT)) * 10000) / 10000
+
+export type CatalogPackage = { id: string; name: string; description: string | null; price: number | null; active: boolean }
+
+// Lydpakker og tilvalg fra Opsætning (priser er inkl. moms)
+export async function listPackages(): Promise<CatalogPackage[]> {
+  return check(await db().from('sound_packages').select('id, name, description, price, active').order('sort_order')) as CatalogPackage[]
+}
+
+export const packageLine = (p: CatalogPackage): Omit<DocLine, 'sort'> => ({
+  description: p.name,
+  quantity: 1,
+  unit: 'stk.',
+  unit_price: p.price != null ? exVat(Number(p.price)) : 0,
+})
 
 // Nyt tilbud/faktura ud fra en booking (priser i booking/katalog er inkl. moms)
-export async function createFromBooking(b: Booking, type: DocType, catalogPrices: Record<string, number | null> = {}) {
+export async function createFromBooking(
+  b: Booking,
+  type: DocType,
+  catalogPrices: Record<string, number | null> = {},
+  packages: CatalogPackage[] = [],
+) {
   const date = new Date(b.event_date + 'T12:00:00').toLocaleDateString('da-DK', { day: 'numeric', month: 'long', year: 'numeric' })
   const event = [b.event_types?.name, b.event_themes?.name].filter(Boolean).join(' – ') || 'Event'
   const main = b.quoted_price ?? catalogPrices[b.event_type_id] ?? 0
@@ -181,6 +200,11 @@ export async function createFromBooking(b: Booking, type: DocType, catalogPrices
       unit: 'stk.',
       unit_price: exVat(Number(main)),
     },
+    // Lyd & lys som kunden valgte i booking-flowet
+    ...b.booking_packages
+      .map((bp) => packages.find((p) => p.name === bp.sound_packages?.name))
+      .filter((p): p is CatalogPackage => !!p)
+      .map(packageLine),
   ]
   return createDoc(
     {
