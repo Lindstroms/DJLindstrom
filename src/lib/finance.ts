@@ -147,6 +147,7 @@ export async function saveDraft(id: string, fields: DocFields, lines: DocLine[])
             unit: l.unit,
             unit_price: l.unit_price,
           })),
+          { defaultToNull: false },
         ),
     )
   }
@@ -155,7 +156,14 @@ export async function saveDraft(id: string, fields: DocFields, lines: DocLine[])
 async function createDoc(doc: Partial<Doc> & { type: DocType }, lines: Omit<DocLine, 'sort'>[]): Promise<string> {
   const created = check(await db().from('docs').insert(doc).select('id').single()) as { id: string }
   if (lines.length)
-    check(await db().from('doc_lines').insert(lines.map((l, i) => ({ ...l, sort: i, doc_id: created.id, id: undefined }))))
+    check(
+      await db()
+        .from('doc_lines')
+        .insert(
+          lines.map(({ description, quantity, unit, unit_price }, i) => ({ description, quantity, unit, unit_price, sort: i, doc_id: created.id })),
+          { defaultToNull: false },
+        ),
+    )
   return created.id
 }
 
