@@ -143,7 +143,7 @@ export async function saveDraft(id: string, fields: DocFields, lines: DocLine[])
             doc_id: id,
             sort: i,
             description: l.description,
-            quantity: l.quantity,
+            quantity: cleanQuantity(l.quantity, l.unit),
             unit: l.unit,
             unit_price: l.unit_price,
           })),
@@ -167,6 +167,11 @@ async function createDoc(doc: Partial<Doc> & { type: DocType }, lines: Omit<DocL
   return created.id
 }
 
+// Kun tidsenheder (timer) må have decimaler – alt andet tælles i hele stk.
+export const allowsFraction = (unit: string) => /^(t|time|timer|t\.)$/i.test(unit.trim())
+export const cleanQuantity = (q: number, unit: string) =>
+  allowsFraction(unit) ? Math.round(Number(q) * 2) / 2 : Math.round(Number(q))
+
 export const exVat = (incl: number) => Math.round((incl / (1 + VAT)) * 10000) / 10000
 
 export type CatalogPackage = { id: string; name: string; description: string | null; price: number | null; active: boolean }
@@ -183,6 +188,20 @@ export const packageLine = (p: CatalogPackage): Omit<DocLine, 'sort'> => ({
   unit_price: p.price != null ? exVat(Number(p.price)) : 0,
 })
 
+// Seneste udstedte tilbud på en booking – accepterede først
+async function latestQuote(bookingId: string): Promise<Doc | null> {
+  const quotes = check(
+    await db()
+      .from('docs')
+      .select('*')
+      .eq('booking_id', bookingId)
+      .eq('type', 'tilbud')
+      .in('status', ['accepteret', 'sendt'])
+      .order('created_at', { ascending: false }),
+  ) as Doc[]
+  return quotes.find((q) => q.status === 'accepteret') ?? quotes[0] ?? null
+}
+
 // Nyt tilbud/faktura ud fra en booking (priser i booking/katalog er inkl. moms)
 export async function createFromBooking(
   b: Booking,
@@ -190,22 +209,39 @@ export async function createFromBooking(
   catalogPrices: Record<string, number | null> = {},
   packages: CatalogPackage[] = [],
 ) {
+  // Faktura: findes der et tilbud, kopieres dets linjer og priser 1:1
+  if (type === 'faktura') {
+    const quote = await latestQuote(b.id)
+    if (quote) {
+      const { lines } = await getDoc(quote.id)
+      return createFollowUp(quote, lines, 'faktura')
+    }
+  }
+
   const date = new Date(b.event_date + 'T12:00:00').toLocaleDateString('da-DK', { day: 'numeric', month: 'long', year: 'numeric' })
   const event = [b.event_types?.name, b.event_themes?.name].filter(Boolean).join(' – ') || 'Event'
-  const main = b.quoted_price ?? catalogPrices[b.event_type_id] ?? 0
-  const lines: Omit<DocLine, 'sort'>[] = [
-    {
-      description: `DJ – ${event}, ${date} kl. ${b.start_time.slice(0, 5)} (${Number(b.hours).toLocaleString('da-DK')} timer)`,
-      quantity: 1,
-      unit: 'stk.',
-      unit_price: exVat(Number(main)),
-    },
-    // Lyd & lys som kunden valgte i booking-flowet
-    ...b.booking_packages
-      .map((bp) => packages.find((p) => p.name === bp.sound_packages?.name))
-      .filter((p): p is CatalogPackage => !!p)
-      .map(packageLine),
-  ]
+  const djLine = `DJ – ${event}, ${date} kl. ${b.start_time.slice(0, 5)} (${Number(b.hours).toLocaleString('da-DK')} timer)`
+  const chosen = b.booking_packages
+    .map((bp) => packages.find((p) => p.name === bp.sound_packages?.name))
+    .filter((p): p is CatalogPackage => !!p)
+
+  // "Tilbudt pris" på bookingen er den samlede pris inkl. moms – lyd & lys er med i den,
+  // så de må ikke lægges oveni som ekstra linjer
+  const lines: Omit<DocLine, 'sort'>[] =
+    b.quoted_price != null
+      ? [
+          {
+            description: chosen.length ? `${djLine}\ninkl. ${chosen.map((p) => p.name).join(', ')}` : djLine,
+            quantity: 1,
+            unit: 'stk.',
+            unit_price: exVat(Number(b.quoted_price)),
+          },
+        ]
+      : [
+          { description: djLine, quantity: 1, unit: 'stk.', unit_price: exVat(Number(catalogPrices[b.event_type_id] ?? 0)) },
+          // Lyd & lys som kunden valgte i booking-flowet
+          ...chosen.map(packageLine),
+        ]
   return createDoc(
     {
       type,

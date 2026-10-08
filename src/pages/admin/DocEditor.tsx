@@ -6,7 +6,9 @@ import {
   DOC_TITLES,
   STATUS_LABEL,
   VAT,
+  allowsFraction,
   calcTotals,
+  cleanQuantity,
   createFollowUp,
   deleteDraft,
   docLabel,
@@ -219,11 +221,13 @@ function DocEditor() {
             />
             <input
               type="number"
-              step="0.5"
+              step={allowsFraction(l.unit) ? '0.5' : '1'}
+              inputMode={allowsFraction(l.unit) ? 'decimal' : 'numeric'}
               className="w-full min-w-0 rounded-lg border border-zinc-700 bg-zinc-950 px-2 py-2 text-right"
               value={l.quantity}
               disabled={!draft}
               onChange={(e) => setLine(i, { quantity: Number(e.target.value) })}
+              onBlur={() => setLine(i, { quantity: cleanQuantity(l.quantity, l.unit) })}
               aria-label="Antal"
             />
             <input
@@ -231,6 +235,7 @@ function DocEditor() {
               value={l.unit}
               disabled={!draft}
               onChange={(e) => setLine(i, { unit: e.target.value })}
+              onBlur={() => setLine(i, { quantity: cleanQuantity(l.quantity, l.unit) })}
               aria-label="Enhed"
             />
             <input
