@@ -63,4 +63,6 @@ npm run dev
   resultat og moms at betale pr. kvartal i Overblik, CSV-eksport
 - [x] Kundeside "Min booking" (#/booking/:token): status, tilbud/faktura, tidsplan & praktisk (gemmes i `bookings.event_plan`,
   Viktor får mail og ser den i admin + kalender), musikønsker, QR til gæsternes sangønsker, anmeldelse
+- [x] Spam-beskyttelse af bookingformularen (honeypot, tidsfælde, grænser pr. IP/e-mail/time) og privatlivspolitik (#/privatliv),
+  selv-hostede skrifttyper (ingen Google Fonts), automatisk sletning af gamle forespørgsler og live-ønsker (pg_cron kl. 03:40 UTC)
 - [x] Abonnent-kalender (ICS-feed) til iPhone – Admin → Opsætning → Kalender

@@ -1,6 +1,13 @@
 import { StrictMode, type ReactNode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { HashRouter, Link, Route, Routes } from 'react-router-dom'
+// Skrifttyper hostes selv (ingen kald til Google Fonts = ingen IP-adresser til Google)
+import '@fontsource/inter/latin-400.css'
+import '@fontsource/inter/latin-500.css'
+import '@fontsource/inter/latin-600.css'
+import '@fontsource/inter/latin-700.css'
+import '@fontsource/unbounded/latin-700.css'
+import '@fontsource/unbounded/latin-900.css'
 import './index.css'
 import Home from './pages/Home'
 import Thanks from './pages/Thanks'
@@ -9,6 +16,7 @@ import MusicWishes from './pages/MusicWishes'
 import LiveGuest from './pages/LiveGuest'
 import Review from './pages/Review'
 import CustomerPortal from './pages/CustomerPortal'
+import Privacy from './pages/Privacy'
 import DocView from './pages/DocView'
 import DocEditorPage from './pages/admin/DocEditor'
 import LiveDj from './pages/admin/LiveDj'
@@ -35,6 +43,7 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/" element={<Home />} />
         <Route path="/tak" element={<Page><Thanks /></Page>} />
         <Route path="/admin" element={<Page><Admin /></Page>} />
+        <Route path="/privatliv" element={<Page><Privacy /></Page>} />
         <Route path="/booking/:token" element={<Page><CustomerPortal /></Page>} />
         <Route path="/musik/:token" element={<Page><MusicWishes /></Page>} />
         <Route path="/live/:token" element={<Page><LiveGuest /></Page>} />

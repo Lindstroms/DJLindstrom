@@ -42,12 +42,13 @@ export async function fetchCatalog(): Promise<Catalog> {
   }
 }
 
-export async function submitBookingRequest(req: BookingRequest): Promise<void> {
+// meta: skjult honeypot-felt og hvor længe formularen har været åben (spam-filter i databasen)
+export async function submitBookingRequest(req: BookingRequest, meta: { website: string; form_ms: number }): Promise<void> {
   if (!supabase) {
     await new Promise((r) => setTimeout(r, 600))
     return
   }
-  const { error } = await supabase.rpc('submit_booking_request', { payload: req })
+  const { error } = await supabase.rpc('submit_booking_request', { payload: { ...req, ...meta } })
   if (error) fail(error.message)
 }
 

@@ -59,6 +59,9 @@ export default function Booking({ catalog, preselect }: { catalog: Catalog; pres
   const [form, setForm] = useState<Form>(emptyForm)
   const [sending, setSending] = useState(false)
   const [submitError, setSubmitError] = useState('')
+  // Spam-filter: bots udfylder det skjulte felt og sender formularen på få sekunder
+  const [website, setWebsite] = useState('')
+  const [startedAt] = useState(() => Date.now())
   const topRef = useRef<HTMLDivElement>(null)
   const firstRender = useRef(true)
 
@@ -135,7 +138,7 @@ export default function Booking({ catalog, preselect }: { catalog: Catalog; pres
         phone: form.phone.trim(),
         message: form.message.trim() || null,
         package_ids: form.packageIds,
-      })
+      }, { website, form_ms: Date.now() - startedAt })
       navigate('/tak')
     } catch (e) {
       setSubmitError((e as Error).message)
@@ -359,10 +362,21 @@ export default function Booking({ catalog, preselect }: { catalog: Catalog; pres
                 onChange={(e) => set('consent', e.target.checked)}
               />
               <span className="text-zinc-300">
-                Jeg accepterer, at DJ Lindstrøm gemmer mine oplysninger for at kunne sende et tilbud og håndtere
-                bookingen. Oplysningerne deles ikke med andre.
+                Jeg accepterer, at DJ Lindstrøm gemmer mine oplysninger for at kunne sende et tilbud og håndtere bookingen. Læs
+                mere i{' '}
+                <a href="#/privatliv" target="_blank" rel="noreferrer" className="text-accent underline">
+                  privatlivspolitikken
+                </a>
+                .
               </span>
             </label>
+            {/* Honeypot – usynligt for mennesker, men bots udfylder det */}
+            <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
+              <label>
+                Website
+                <input tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} name="website" />
+              </label>
+            </div>
             {submitError && <p className="mt-4 rounded-lg bg-red-950 p-3 text-sm text-red-300">{submitError}</p>}
           </>
         )}

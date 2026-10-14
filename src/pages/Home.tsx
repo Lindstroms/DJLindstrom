@@ -377,9 +377,14 @@ export default function Home() {
             <a href={`mailto:${content.email}`} className="text-zinc-300 hover:text-white">
               {content.email}
             </a>
-            <Link to="/admin" className="text-xs text-zinc-600 hover:text-zinc-400">
-              Admin
-            </Link>
+            <span className="flex gap-4 text-xs">
+              <Link to="/privatliv" className="text-zinc-500 hover:text-zinc-300">
+                Privatlivspolitik
+              </Link>
+              <Link to="/admin" className="text-zinc-600 hover:text-zinc-400">
+                Admin
+              </Link>
+            </span>
           </div>
         </div>
       </footer>
