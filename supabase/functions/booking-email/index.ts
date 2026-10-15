@@ -9,7 +9,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 
 const EMAIL_FROM = Deno.env.get('EMAIL_FROM') ?? 'DJ Lindstrøm <booking@fam-lindstrom.dk>'
 const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL') ?? 'viktor@fam-lindstrom.dk'
-const SITE_URL = Deno.env.get('SITE_URL') ?? 'https://lindstroms.github.io/DJLindstrom/'
+const SITE_URL = Deno.env.get('SITE_URL') ?? 'https://djlindstrom.dk/'
 const ADMIN_URL = SITE_URL + '#/admin'
 
 // Accepterer både RESEND_API_KEY og resend_api_key

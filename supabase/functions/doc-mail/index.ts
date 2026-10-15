@@ -7,7 +7,7 @@ import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from 'npm
 
 const EMAIL_FROM = Deno.env.get('EMAIL_FROM') ?? 'DJ Lindstrøm <booking@fam-lindstrom.dk>'
 const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL') ?? 'viktor@fam-lindstrom.dk'
-const SITE_URL = Deno.env.get('SITE_URL') ?? 'https://lindstroms.github.io/DJLindstrom/'
+const SITE_URL = Deno.env.get('SITE_URL') ?? 'https://djlindstrom.dk/'
 const resendKey = () => Deno.env.get('RESEND_API_KEY') ?? Deno.env.get('resend_api_key')
 
 const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
