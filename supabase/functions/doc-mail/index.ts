@@ -12,6 +12,13 @@ const resendKey = () => Deno.env.get('RESEND_API_KEY') ?? Deno.env.get('resend_a
 
 const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
 
+// Interne beskeder går til alle admins (tabellen public.admins) – fallback: ADMIN_EMAIL
+async function adminEmails(): Promise<string[]> {
+  const { data } = await db.from('admins').select('email')
+  const list = (data ?? []).map((a: { email: string }) => a.email).filter(Boolean)
+  return list.length ? list : [ADMIN_EMAIL]
+}
+
 type Doc = Record<string, any>
 type Line = { description: string; quantity: number; unit: string; unit_price: number; sort: number }
 type Settings = Record<string, any>
@@ -239,11 +246,11 @@ function layout(title: string, body: string) {
 const button = (href: string, label: string) =>
   `<p style="margin:24px 0"><a href="${href}" style="background:#e040fb;color:#000;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:700">${esc(label)}</a></p>`
 
-async function send(to: string, subject: string, html: string, replyTo?: string, attachment?: { filename: string; content: string }) {
+async function send(to: string | string[], subject: string, html: string, replyTo?: string, attachment?: { filename: string; content: string }) {
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${resendKey()}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: EMAIL_FROM, to: [to], subject, html, reply_to: replyTo, attachments: attachment ? [attachment] : undefined }),
+    body: JSON.stringify({ from: EMAIL_FROM, to: Array.isArray(to) ? to : [to], subject, html, reply_to: replyTo, attachments: attachment ? [attachment] : undefined }),
   })
   if (!res.ok) throw new Error(`Resend ${res.status}: ${await res.text()}`)
 }
@@ -364,7 +371,7 @@ async function handleAccepted(id: string) {
   const body = `<p><b>${esc(doc.customer_name)}</b>${doc.customer_company ? ` (${esc(doc.customer_company)})` : ''} har accepteret tilbud nr. ${doc.number} på <b>${kr(doc.total)}</b>.</p>
     <p>Bookingen er sat til <b>Bekræftet</b>, og kunden har fået mail med link til musikønsker.</p>
     ${button(SITE_URL + '#/admin', 'Åbn admin')}`
-  await send(ADMIN_EMAIL, `Tilbud nr. ${doc.number} accepteret – ${doc.customer_name}`, layout('Tilbud accepteret 🎉', body), doc.customer_email)
+  await send(await adminEmails(), `Tilbud nr. ${doc.number} accepteret – ${doc.customer_name}`, layout('Tilbud accepteret 🎉', body), doc.customer_email)
   return new Response('OK')
 }
 

@@ -4,7 +4,8 @@
 // Secrets (Supabase: Edge Functions -> Secrets):
 //   RESEND_API_KEY  – påkrævet
 //   EMAIL_FROM      – valgfri, standard "DJ Lindstrøm <booking@fam-lindstrom.dk>"
-//   ADMIN_EMAIL     – valgfri, standard "viktor@fam-lindstrom.dk"
+//   ADMIN_EMAIL     – valgfri, standard "viktor@fam-lindstrom.dk" (svar-adresse til kunder; interne
+//                     beskeder går til alle i tabellen public.admins)
 import { createClient } from 'npm:@supabase/supabase-js@2'
 
 const EMAIL_FROM = Deno.env.get('EMAIL_FROM') ?? 'DJ Lindstrøm <booking@fam-lindstrom.dk>'
@@ -16,6 +17,13 @@ const ADMIN_URL = SITE_URL + '#/admin'
 const resendKey = () => Deno.env.get('RESEND_API_KEY') ?? Deno.env.get('resend_api_key')
 
 const db = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
+
+// Interne beskeder går til alle admins (tabellen public.admins) – fallback: ADMIN_EMAIL
+async function adminEmails(): Promise<string[]> {
+  const { data } = await db.from('admins').select('email')
+  const list = (data ?? []).map((a: { email: string }) => a.email).filter(Boolean)
+  return list.length ? list : [ADMIN_EMAIL]
+}
 
 const esc = (s: unknown) =>
   String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
@@ -86,11 +94,11 @@ function layout(title: string, body: string) {
 </div></body></html>`
 }
 
-async function send(to: string, subject: string, html: string, replyTo?: string) {
+async function send(to: string | string[], subject: string, html: string, replyTo?: string) {
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${resendKey()}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: EMAIL_FROM, to: [to], subject, html, reply_to: replyTo }),
+    body: JSON.stringify({ from: EMAIL_FROM, to: Array.isArray(to) ? to : [to], subject, html, reply_to: replyTo }),
   })
   if (!res.ok) throw new Error(`Resend ${res.status}: ${await res.text()}`)
 }
@@ -165,7 +173,7 @@ Deno.serve(async (req) => {
 
   const results = await Promise.allSettled([
     send(b.email, 'Tak for din forespørgsel – DJ Lindstrøm', customerHtml, ADMIN_EMAIL),
-    send(ADMIN_EMAIL, `Ny forespørgsel: ${event} ${b.event_date}`, adminHtml, b.email),
+    send(await adminEmails(), `Ny forespørgsel: ${event} ${b.event_date}`, adminHtml, b.email),
   ])
   const failed = results.filter((r) => r.status === 'rejected') as PromiseRejectedResult[]
   if (failed.length) {
@@ -300,7 +308,7 @@ async function sendReviewReceived(reviewId: string) {
      }`,
   )
   try {
-    await send(ADMIN_EMAIL, `Ny anmeldelse ${stars(r.rating)} – ${r.display_name}`, html, r.bookings?.email)
+    await send(await adminEmails(), `Ny anmeldelse ${stars(r.rating)} – ${r.display_name}`, html, r.bookings?.email)
   } catch (e) {
     console.error(String(e))
     return new Response(`Fejl ved afsendelse:\n${e}`, { status: 502 })
@@ -328,7 +336,7 @@ async function sendPlanUpdated(id: string) {
      <p style="color:#666;font-size:14px">Retter kunden mere, står den seneste version altid i admin og i din kalender.</p>`,
   )
   try {
-    await send(ADMIN_EMAIL, `Tidsplan opdateret: ${event} ${b.event_date} – ${b.customer_name}`, html, b.email)
+    await send(await adminEmails(), `Tidsplan opdateret: ${event} ${b.event_date} – ${b.customer_name}`, html, b.email)
   } catch (e) {
     console.error(String(e))
     return new Response(`Fejl ved afsendelse:\n${e}`, { status: 502 })
