@@ -2,8 +2,8 @@
 
 Booking-app til DJ Lindstrøm. Kunder sender en forespørgsel, og Viktor håndterer dem i admin.
 
-- **Kundeside:** `https://lindstroms.github.io/DJLindstrom/`
-- **Admin:** `https://lindstroms.github.io/DJLindstrom/#/admin`
+- **Kundeside:** `https://djlindstrom.dk/` (tidligere `https://lindstroms.github.io/DJLindstrom/`, som viderestiller)
+- **Admin:** `https://djlindstrom.dk/#/admin`
 
 Teknik: React + Vite + Tailwind (frontend på GitHub Pages) og Supabase (database og login).
 Med `VITE_DEMO=true` kører appen i **demo-tilstand** med eksempeldata.
