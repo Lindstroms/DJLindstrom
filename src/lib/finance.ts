@@ -110,6 +110,27 @@ export async function getDoc(id: string): Promise<{ doc: Doc; lines: DocLine[] }
   return { doc: check(doc) as Doc, lines: check(lines) as DocLine[] }
 }
 
+// Det kunden bad om i sin forespørgsel (vises i tilbud/faktura-redigeringen)
+export type BookingRequestInfo = {
+  event_date: string
+  start_time: string
+  hours: number
+  guest_count: number | null
+  message: string | null
+  event_types: { name: string } | null
+  event_themes: { name: string } | null
+  booking_packages: { sound_packages: { name: string } | null }[]
+}
+
+export async function getBookingRequest(id: string): Promise<BookingRequestInfo | null> {
+  const { data } = await db()
+    .from('bookings')
+    .select('event_date, start_time, hours, guest_count, message, event_types(name), event_themes(name), booking_packages(sound_packages(name))')
+    .eq('id', id)
+    .maybeSingle()
+  return data as BookingRequestInfo | null
+}
+
 export async function getFinanceSettings(): Promise<FinanceSettings> {
   return check(
     await db()
@@ -225,23 +246,16 @@ export async function createFromBooking(
     .map((bp) => packages.find((p) => p.name === bp.sound_packages?.name))
     .filter((p): p is CatalogPackage => !!p)
 
-  // "Tilbudt pris" på bookingen er den samlede pris inkl. moms – lyd & lys er med i den,
-  // så de må ikke lægges oveni som ekstra linjer
-  const lines: Omit<DocLine, 'sort'>[] =
-    b.quoted_price != null
-      ? [
-          {
-            description: chosen.length ? `${djLine}\ninkl. ${chosen.map((p) => p.name).join(', ')}` : djLine,
-            quantity: 1,
-            unit: 'stk.',
-            unit_price: exVat(Number(b.quoted_price)),
-          },
-        ]
-      : [
-          { description: djLine, quantity: 1, unit: 'stk.', unit_price: exVat(Number(catalogPrices[b.event_type_id] ?? 0)) },
-          // Lyd & lys som kunden valgte i booking-flowet
-          ...chosen.map(packageLine),
-        ]
+  // Kundens valg af lyd & lys kommer altid med som egne linjer med katalogpris.
+  // Er "Tilbudt pris" (samlet pris inkl. moms) udfyldt på bookingen, får DJ-linjen resten,
+  // så totalen stadig passer; ellers bruges event-typens pris.
+  const packagesTotal = chosen.reduce((sum, p) => sum + Number(p.price ?? 0), 0)
+  const djPrice =
+    b.quoted_price != null ? Math.max(0, Number(b.quoted_price) - packagesTotal) : Number(catalogPrices[b.event_type_id] ?? 0)
+  const lines: Omit<DocLine, 'sort'>[] = [
+    { description: djLine, quantity: 1, unit: 'stk.', unit_price: exVat(djPrice) },
+    ...chosen.map(packageLine),
+  ]
   return createDoc(
     {
       type,

@@ -14,6 +14,7 @@ import {
   docLabel,
   docUrl,
   finalizeDoc,
+  getBookingRequest,
   getDoc,
   getFinanceSettings,
   isOverdue,
@@ -24,6 +25,7 @@ import {
   sendDoc,
   setPaid,
   setQuoteStatus,
+  type BookingRequestInfo,
   type CatalogPackage,
   type Doc,
   type DocLine,
@@ -68,6 +70,7 @@ function DocEditor() {
   const [lines, setLines] = useState<DocLine[]>([])
   const [settings, setSettings] = useState<FinanceSettings | null>(null)
   const [packages, setPackages] = useState<CatalogPackage[]>([])
+  const [request, setRequest] = useState<BookingRequestInfo | null>(null)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState('')
   const [saved, setSaved] = useState(false)
@@ -80,6 +83,7 @@ function DocEditor() {
       setLines(lines)
       setSettings(s)
       setPackages(pk)
+      setRequest(doc.booking_id ? await getBookingRequest(doc.booking_id) : null)
     } catch (e) {
       setError((e as Error).message)
     }
@@ -193,6 +197,67 @@ function DocEditor() {
           />
         </label>
       </section>
+
+      {/* Kundens ønsker fra forespørgslen */}
+      {request && (
+        <section className="card grid gap-3 border-accent/40">
+          <h2 className="font-semibold">Kundens forespørgsel</h2>
+          <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 text-sm">
+            <dt className="text-zinc-400">Event</dt>
+            <dd>{[request.event_types?.name, request.event_themes?.name].filter(Boolean).join(' – ') || '–'}</dd>
+            <dt className="text-zinc-400">Tid</dt>
+            <dd>
+              {dateDa(request.event_date)} kl. {request.start_time.slice(0, 5)} · {Number(request.hours).toLocaleString('da-DK')} timer
+            </dd>
+            {request.guest_count != null && (
+              <>
+                <dt className="text-zinc-400">Gæster</dt>
+                <dd>{request.guest_count}</dd>
+              </>
+            )}
+            {request.message && (
+              <>
+                <dt className="text-zinc-400">Besked</dt>
+                <dd className="whitespace-pre-line">{request.message}</dd>
+              </>
+            )}
+          </dl>
+          <div className="grid gap-2">
+            <p className="text-sm text-zinc-400">Ønsket lyd & lys</p>
+            {request.booking_packages.length === 0 ? (
+              <p className="text-sm">Ønsker rådgivning</p>
+            ) : (
+              <ul className="flex flex-wrap gap-2">
+                {request.booking_packages.map((bp, i) => {
+                  const name = bp.sound_packages?.name ?? ''
+                  const onQuote = lines.some((l) => l.description.trim().toLowerCase() === name.toLowerCase())
+                  const pkg = packages.find((p) => p.name === name)
+                  return (
+                    <li key={i} className="flex items-center gap-2 rounded-full border border-zinc-700 py-1 pl-3 pr-1 text-sm">
+                      {name}
+                      {onQuote ? (
+                        <span className="px-2 text-xs text-emerald-400">✓ på {doc.type === 'tilbud' ? 'tilbuddet' : 'dokumentet'}</span>
+                      ) : draft && pkg ? (
+                        <button
+                          className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-semibold text-black"
+                          onClick={() => {
+                            setLines([...lines, { ...packageLine(pkg), sort: lines.length }])
+                            setSaved(false)
+                          }}
+                        >
+                          + Tilføj
+                        </button>
+                      ) : (
+                        <span className="px-2 text-xs text-amber-300">mangler</span>
+                      )}
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Linjer */}
       <section className="card grid grid-cols-1 gap-3">

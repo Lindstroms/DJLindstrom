@@ -168,6 +168,7 @@ function Dashboard() {
                     {format(parseISO(b.event_date), 'EEE d. MMM yyyy', { locale: da })} kl. {b.start_time.slice(0, 5)} ·{' '}
                     {Number(b.hours).toLocaleString('da-DK')} t
                   </span>
+                  {packages.length > 0 && <span className="block truncate text-xs text-zinc-500">🔊 {packages.join(', ')}</span>}
                 </span>
                 <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_COLORS[b.status]}`}>
                   {STATUS_LABELS[b.status]}
